@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-primary: #C62828;
+  --color-primary-dark: #B71C1C;
+  --color-primary-light: #FFEBEE;
+  
+  --color-secondary: #1A237E;
+  --color-secondary-light: #E3F2FD;
+  
+  --color-success: #2E7D32;
+  --color-success-light: #E8F5E9;
+  
+  --color-warning: #F9A825;
+  --color-warning-light: #FFF8E1;
+  
+  --color-danger: #C62828;
+  --color-danger-light: #FFEBEE;
+  
+  --color-text-primary: #212121;
+  --color-text-secondary: #757575;
+  --color-text-tertiary: #AAAAAA;
+  --color-text-inverse: #FFFFFF;
+  
+  --color-bg-page: #F5F5F5;
+  --color-bg-card: #FFFFFF;
+  --color-bg-muted: #F9F9F9;
+  
+  --color-border: #EEEEEE;
+  --color-border-focus: #C62828;
+
+  --font-sans: var(--font-plus-jakarta-sans), "Inter", sans-serif;
+  --font-mono: monospace;
+
+  /* Typography */
+  --text-hero: 16px;
+  --text-title: 14px;
+  --text-heading: 13px;
+  --text-subheading: 12px;
+  --text-body: 10px;
+  --text-label: 9px;
+  --text-caption: 8px;
+  --text-micro: 7px;
+  --text-nano: 6px;
+
+  /* Spacing */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-card: 0 0.5px 0 #EEEEEE;
+  --shadow-dropdown: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+body {
+  background-color: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
