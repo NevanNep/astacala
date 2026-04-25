@@ -39,7 +39,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-CLAUDE.md
-COMPONENT_MAP.md
-SCREEN_SPECS.md
-UI_SYSTEM.md
