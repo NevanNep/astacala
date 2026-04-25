@@ -1,34 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label: string;
   error?: string;
   hint?: string;
   required?: boolean;
-  rightIcon?: React.ReactNode;
 }
 
-export function Input({
+export function Textarea({
   label,
   error,
   hint,
   required,
-  rightIcon,
-  type = "text",
   className = "",
   ...props
-}: InputProps) {
-  const [showPassword, setShowPassword] = useState(false);
-  const isPassword = type === "password";
-  const currentType = isPassword && showPassword ? "text" : type;
-
-  const togglePassword = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setShowPassword(!showPassword);
-  };
-
+}: TextareaProps) {
   return (
     <div className={`flex flex-col mb-[8px] ${className}`}>
       {/* Label */}
@@ -37,28 +25,14 @@ export function Input({
         {required && <span className="text-[var(--color-primary)] ml-[2px]">*</span>}
       </label>
 
-      {/* Input wrapper */}
+      {/* Textarea wrapper */}
       <div className="relative">
-        <input
-          type={currentType}
+        <textarea
           className={`w-full bg-[var(--color-bg-card)] text-[var(--text-caption)] text-[var(--color-text-primary)] placeholder-[var(--color-text-tertiary)] border ${
             error ? "border-[var(--color-primary)]" : "border-[var(--color-border)] focus:border-[var(--color-primary)]"
-          } rounded-[var(--radius-md)] py-[6px] px-[8px] outline-none transition-colors h-auto`}
+          } rounded-[var(--radius-md)] py-[8px] px-[8px] outline-none transition-colors`}
           {...props}
         />
-        {isPassword ? (
-          <button
-            type="button"
-            onClick={togglePassword}
-            className="absolute right-[8px] top-1/2 -translate-y-1/2 text-[var(--text-nano)] text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)]"
-          >
-            {showPassword ? "Hide" : "Show"}
-          </button>
-        ) : rightIcon ? (
-          <div className="absolute right-[8px] top-1/2 -translate-y-1/2">
-            {rightIcon}
-          </div>
-        ) : null}
       </div>
 
       {/* Hint or Error */}

@@ -8,13 +8,16 @@ interface SectionHeaderProps {
 
 export function SectionHeader({ title, actionText, onAction }: SectionHeaderProps) {
   return (
-    <div className="flex justify-between items-center pt-6 pb-4 px-4 md:px-8 lg:px-12">
-      <span className="text-[var(--text-label)] font-medium text-[var(--color-text-primary)]">
+    <div className="flex justify-between items-center pb-3">
+      <h2 className="text-[var(--text-subheading)] font-semibold text-[var(--color-text-primary)] tracking-tight">
         {title}
-      </span>
+      </h2>
       {actionText && (
-        <button onClick={onAction} className="text-[var(--text-nano)] text-[var(--color-primary)]">
-          {actionText}
+        <button 
+          onClick={onAction} 
+          className="text-[var(--text-caption)] font-medium text-[var(--color-primary)] flex items-center gap-1 hover:underline transition-all"
+        >
+          {actionText} <span className="text-[14px]">→</span>
         </button>
       )}
     </div>
