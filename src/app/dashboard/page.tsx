@@ -9,6 +9,7 @@ import { SectionDivider } from "../../components/SectionDivider";
 import { MissionCard } from "../../components/MissionCard";
 import { NewsCard } from "../../components/NewsCard";
 import { Footer } from "../../components/Footer";
+import Link from "next/link";
 
 export default function DashboardPage() {
   return (
@@ -38,25 +39,27 @@ export default function DashboardPage() {
             </div>
 
             {/* CTA Card */}
-            <button 
-              className="w-full bg-white rounded-[20px] p-4 md:p-5 shadow-sm active:scale-[0.98] transition-all flex items-center gap-4 text-left group"
-              onClick={() => console.log("Navigate to S08")}
-            >
-              <div className="w-[64px] h-[64px] bg-[#B22222] rounded-[16px] shrink-0 flex items-center justify-center text-black/80 group-hover:bg-[#A01D1D] transition-colors">
-                {/* Custom Plus Icon to match Figma */}
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <div className="flex flex-col flex-1 pr-2">
-                <span className="text-[16px] md:text-[18px] font-semibold text-[#B22222] mb-0.5">
-                  Buat Laporan Bencana
-                </span>
-                <span className="text-[13px] md:text-[14px] leading-tight text-gray-500 max-w-[200px] md:max-w-none">
-                  Laporkan kondisi darurat dari lapangan
-                </span>
-              </div>
-            </button>
+            <Link href="/report/step1">
+              <button 
+                className="w-full bg-white rounded-[20px] p-4 md:p-5 shadow-sm active:scale-[0.98] transition-all flex items-center gap-4 text-left group"
+                onClick={() => console.log("Navigate to S08")}
+              >
+                <div className="w-[64px] h-[64px] bg-[#B22222] rounded-[16px] shrink-0 flex items-center justify-center text-black/80 group-hover:bg-[#A01D1D] transition-colors">
+                  {/* Custom Plus Icon to match Figma */}
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div className="flex flex-col flex-1 pr-2">
+                  <span className="text-[16px] md:text-[18px] font-semibold text-[#B22222] mb-0.5">
+                    Buat Laporan Bencana
+                  </span>
+                  <span className="text-[13px] md:text-[14px] leading-tight text-gray-500 max-w-[200px] md:max-w-none">
+                    Laporkan kondisi darurat dari lapangan
+                  </span>
+                </div>
+              </button>
+            </Link>
           </div>
         </section>
 

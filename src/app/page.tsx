@@ -6,6 +6,7 @@ import { SectionHeader } from "../components/SectionHeader";
 import { NewsCard } from "../components/NewsCard";
 import { Footer } from "../components/Footer";
 import { Button } from "../components/Button";
+import Link from "next/link";
 
 const statsData: StatItem[] = [
   { number: "128", label: "Laporan Terverifikasi" },
@@ -31,9 +32,11 @@ export default function Home() {
         <p className="text-[var(--text-nano)] text-white/80 mb-[20px] px-[20px]">
           Portal informasi dan manajemen relawan Astacala untuk tanggap darurat bencana di Indonesia.
         </p>
-        <Button variant="primary" className="bg-white !text-[var(--color-primary)] hover:bg-[#F5F5F5] active:bg-[#EEEEEE]">
-          Masuk sebagai Relawan
-        </Button>
+        <Link href="/login">
+          <Button variant="primary" className="bg-white !text-[var(--color-primary)] hover:bg-[#F5F5F5] active:bg-[#EEEEEE]">
+            Masuk sebagai Relawan
+          </Button>
+        </Link>
       </section>
 
       {/* Alert Strip */}
@@ -91,12 +94,11 @@ export default function Home() {
         <p className="text-[var(--text-nano)] text-[var(--color-text-tertiary)] leading-[1.6] mb-[20px] px-[10px]">
           Akses dashboard relawan untuk membuat laporan bencana, daftar misi, dan pantau status laporanmu secara real-time.
         </p>
-        <Button variant="primary" fullWidth className="mb-[12px]">
-          Masuk sebagai Relawan →
-        </Button>
-        <p className="text-[var(--text-micro)] text-[var(--color-text-tertiary)]">
-          Belum punya akun? <span className="text-[var(--color-primary)] font-medium">Hubungi admin Astacala</span>
-        </p>
+        <Link href="/login">
+          <Button variant="primary" className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)]">
+            Masuk sebagai Relawan
+          </Button>
+        </Link>
       </section>
 
       <Footer />

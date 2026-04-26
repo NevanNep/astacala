@@ -15,7 +15,7 @@ export default function CheckEmailPage() {
         <div 
           className="absolute inset-0 w-full h-full z-0"
           style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=2000&q=80')",
+            backgroundImage: "url('/images/background.jpg')",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -44,7 +44,7 @@ export default function CheckEmailPage() {
 
             <div className="pt-2">
               <Button variant="primary" fullWidth className="mt-6">
-                Buka Email
+                 Kirim ulang email
               </Button>
             </div>
 
@@ -53,17 +53,9 @@ export default function CheckEmailPage() {
                 type="button" 
                 className="text-[var(--text-nano)] font-medium text-[var(--color-primary)] hover:underline"
               >
-                Kirim ulang email
-              </button>
-              
-              <a 
-                href="/login" 
-                className="text-[var(--text-nano)] text-[var(--color-text-tertiary)] font-medium hover:text-[var(--color-primary)] transition-colors"
-              >
                 Kembali ke Login
-              </a>
+              </button>
             </div>
-            
           </div>
         </div>
       </main>

@@ -772,93 +772,227 @@ Each item:
 
 ## S08 — FORM LAPORAN: STEP 1 LOKASI
 
-Layout Structure:
-Status Bar
-Navbar
-Left: "‹ Buat Laporan"
-Right: Step counter "1 / 4"
-Stepper (4 steps: Lokasi | Kondisi | Media | Kirim)
-Scrollable Form Content
-Button Row (FIXED at bottom)
-Stepper
-4 steps with horizontal connector
-Circle size: ~32px
-Active step:
-background: color-primary
-text: white
-Inactive steps:
-background: gray
-text: white
-Labels below each circle
-Form Content
-Section
-Title: "Lokasi Kejadian"
-Map Preview
-Height: 120px–160px
-Width: full
-Border radius: radius-lg
-Background: placeholder (map area)
-Map Footer
-Layout: flex space-between
-Left:
-"Kec. X, Kota Y"
-Right:
-"↺ Refresh GPS"
-color: color-primary
-clickable text
-Form Fields
+### Layout Structure:
 
-1. Alamat Lengkap \*
-   Type: textarea
-   Min height: 80px
-   Resize: disabled
-   Placeholder: "Jl...."
-   Hint:
-   "Isi jika koordinat GPS kurang akurat"
-   Style: text-nano, color-text-tertiary
-2. Kelurahan / Kecamatan \*
-   Type: input
-   Pre-filled from GPS
-   Active border state
-   Right icon: ✓
-3. Kabupaten / Kota \*
-   Type: input
-   Pre-filled from GPS
-   Active border state
-   Right icon: ✓
-   Spacing Rules
-   Section padding: px-4 py-6
-   Between fields: space-y-4
-   Between sections: consistent vertical rhythm
-   Button Row (IMPORTANT)
-   Position: fixed bottom
-   Full width
-   Padding: px-4 py-4
-   Background: white
-   Border top: subtle
-   Layout:
-   Flex row
-   Gap: 8px
-   Buttons:
+1. Status Bar
+2. Navbar  
+   - Left: "‹ Buat Laporan"  
+   - Right: Step counter "1 / 3"  
+3. Stepper (3 steps: Lokasi | Kondisi | Kirim)  
+4. Scrollable Form Content  
+5. Button Row (FIXED at bottom)
 
-Left:
+---
 
-"Batal"
-Variant: outline
-flex: 1
 
-Right:
+### Stepper:
 
-"Lanjut"
-Variant: primary
-flex: 2
-Behaviors
-"Lanjut":
-Validate required fields
-Navigate to S09
-"Batal":
-Show confirmation dialog
-Navigate to S07
+- 3 steps with horizontal connector  
+- Circle size: ~32px  
+
+**Active step:**  
+- background: color-primary  
+- text: white  
+
+**Inactive steps:**  
+- background: gray  
+- text: white  
+
+- Labels below each circle  
+
+---
+
+### Form Content:
+
+#### Section — Lokasi Kejadian
+
+---
+
+### Map Preview:
+
+- Height: 140px–180px  
+- Width: full  
+- Border radius: radius-lg  
+- Background: placeholder (map area)  
+
+---
+
+### Map Footer:
+
+- Layout: flex space-between  
+
+**Left:**  
+- "Kec. X, Kota Y" (auto-filled from GPS)
+
+**Right:**  
+- "↺ Refresh GPS"  
+- color: color-primary  
+- clickable  
+
+---
+### Map Interaction (UPDATED)
+
+- User can tap/click on map to select location
+- Selected location shows a marker on map
+
+- System captures:
+  - latitude
+  - longitude
+
+- System performs reverse geocoding:
+  - Converts coordinates into readable address
+  - Automatically fills "Alamat Lengkap"
+
+- User can edit the address manually after auto-fill
+
+- If GPS is available:
+  - Auto-center map to user location
+
+
+---
+
+### GPS Behavior
+
+**States:**
+
+1. Detecting:
+   - Text: "Mencari lokasi..."
+2. Success:
+   - Map centers to current location
+   - Marker appears
+   - Address is auto-filled
+3. Failed:
+   - User can manually select location via map
+
+
+---
+
+### Map Output (Data)
+
+Selected location must produce:
+
+- latitude (number)
+- longitude (number)
+- alamat (string, auto-filled or manual)
+
+These values are REQUIRED for submission.
+
+
+---
+
+### Address Behavior (NEW)
+
+- "Alamat Lengkap":
+  - Auto-filled from map selection (reverse geocoding)
+  - Editable by user
+
+- If reverse geocoding fails:
+  - Field remains empty
+  - User must input manually
+
+---
+
+### Integration with Form
+
+- Map is primary source of location data
+- "Alamat Lengkap" is used only as supporting detail
+- User may adjust address manually if needed
+
+---
+
+### Validation
+
+- Location (latitude & longitude) is REQUIRED
+- Alamat is REQUIRED
+
+### Form Fields:
+
+---
+
+#### 1. Alamat Lengkap *
+
+- Type: textarea  
+- Min height: 80px  
+- Resize: disabled  
+- Placeholder: "Jl...."  
+
+**Hint:**  
+- "Isi jika koordinat GPS kurang akurat"  
+- Style: text-nano, color-text-tertiary  
+
+---
+
+#### 2. Detail Tambahan (Optional)
+
+- Type: textarea  
+- Min height: 60px  
+- Resize: disabled  
+- Placeholder:  
+  "Contoh: dekat jembatan, akses sulit, dll"  
+
+- Style: same as input  
+
+---
+
+### Removed Fields (IMPORTANT)
+
+- Kelurahan / Kecamatan  
+- Kabupaten / Kota  
+
+Reason:  
+Location is already derived from GPS/map → manual input is redundant.
+
+---
+
+### Spacing Rules:
+
+- Section padding: px-4 py-6  
+- Between fields: space-y-4  
+- Consistent vertical rhythm  
+
+---
+
+### Button Row (IMPORTANT):
+
+- Position: fixed bottom  
+- Full width  
+- Padding: px-4 py-4  
+- Background: white  
+- Border top: subtle  
+
+**Layout:**
+- Flex row  
+- Gap: 8px  
+
+---
+
+### Buttons:
+
+**Left:**  
+- "Batal"  
+- Variant: outline  
+- flex: 1  
+
+**Right:**  
+- "Lanjut"  
+- Variant: primary  
+- flex: 2  
+
+---
+
+### Behaviors:
+
+**"Lanjut":**  
+- Validate: alamat wajib diisi  
+- Save:
+  - koordinat (from map)  
+  - alamat  
+  - detail (optional)  
+- Navigate to S09  
+
+**"Batal":**  
+- Show confirmation dialog  
+- Navigate to S07  
 
 Stepper State
 3 steps total

@@ -13,7 +13,7 @@ export default function RegisterPage() {
         <div 
           className="absolute inset-0 w-full h-full z-0"
           style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=2000&q=80')",
+            backgroundImage: "url('/images/background.jpg')",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -45,21 +45,19 @@ export default function RegisterPage() {
                 <Input
                   label="Email"
                   type="email"
-                  placeholder="email@astacala.id"
+                  placeholder="email@gmail.com"
                   required
                 />
 
                 <Input
                   label="Password"
                   type="password"
-                  placeholder="••••••••"
                   required
                 />
 
                 <Input
                   label="Confirm Password"
                   type="password"
-                  placeholder="••••••••"
                   required
                 />
               </div>

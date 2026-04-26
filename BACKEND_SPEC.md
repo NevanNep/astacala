@@ -132,6 +132,67 @@ Report verification is not real (simulation only)
 System supports one-way flow: user → system
 B05 — NON-SCOPE
 
+## Report Draft (Step-based Input)
+
+Data structure:
+
+{
+  latitude: number
+  longitude: number
+  alamat: string
+  detail?: string
+}
+
+Validation:
+- latitude required
+- longitude required
+- alamat required
+
+Notes:
+- alamat may be:
+  - entered manually by user, OR
+  - auto-filled via reverse geocoding (frontend)
+
+Storage:
+- Stored temporarily as draft (NOT final report)
+- Use session (cookie-based)
+
+---
+
+### Draft Flow
+
+Reports are created in multi-step flow:
+
+Step 1 → store location  
+Step 2 → add condition  
+Step 3 → review & submit → create final report  
+
+Draft must persist between steps.
+
+---
+
+### Endpoint — Create Draft (Step 1)
+
+POST /api/report/draft
+
+Request:
+{
+  latitude: number
+  longitude: number
+  alamat: string
+  detail?: string
+}
+
+Response:
+{
+  success: true
+}
+
+Error:
+{
+  error: string
+}
+
 The following features are NOT included in MVP:
 
 Admin dashboard / control center

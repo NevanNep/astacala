@@ -40,7 +40,7 @@ export default function ResetPasswordPage() {
         <div 
           className="absolute inset-0 w-full h-full z-0"
           style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=2000&q=80')",
+            backgroundImage: "url('/images/background.jpg')",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -69,7 +69,6 @@ export default function ResetPasswordPage() {
                 <Input
                   label="Password Baru"
                   type="password"
-                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -112,8 +111,6 @@ export default function ResetPasswordPage() {
                   <Input
                     label="Konfirmasi Password"
                     type="password"
-                    placeholder="••••••••"
-                    value={confirmPassword}
                     onChange={(e) => {
                       setConfirmPassword(e.target.value);
                       if (isSubmitted) setIsSubmitted(false);

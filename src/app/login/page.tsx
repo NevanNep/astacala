@@ -1,22 +1,54 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 /*import { Navbar } from "../../components/Navbar";*/
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (res.ok) {
+        router.push("/dashboard");
+      } else {
+        const data = await res.json();
+        setError(data.error ?? "Login gagal. Coba lagi.");
+      }
+    } catch {
+      setError("Terjadi kesalahan. Coba lagi.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col relative w-full">
       {/*<Navbar variant="public" />*/}
-      
+
       <main className="w-full relative flex-1 flex items-center justify-center overflow-hidden">
-        
+
         {/* Full Background Layout */}
-        <div 
+        <div
           className="absolute inset-0 w-full h-full z-0"
           style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=2000&q=80')",
+            backgroundImage: "url('/images/background.jpg')",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -28,7 +60,7 @@ export default function LoginPage() {
         {/* Centered Login Card */}
         <div className="relative z-10 w-full px-4 flex items-center justify-center py-8">
           <div className="bg-white rounded-[var(--radius-xl)] shadow-xl p-6 md:p-8 w-full max-w-[400px] md:max-w-[480px]">
-            
+
             <div className="mb-6 md:mb-8 flex flex-col items-center">
               <h1 className="text-[var(--text-heading)] font-semibold text-[var(--color-text-primary)] mb-2">
                 Sign in
@@ -36,28 +68,32 @@ export default function LoginPage() {
               <div className="w-[32px] h-[3px] bg-[var(--color-primary)] rounded-full" />
             </div>
 
-            <form className="space-y-6 md:space-y-8" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-6 md:space-y-8" onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <Input
                   label="Email / Username"
                   type="email"
-                  placeholder="email@astacala.id"
+                  placeholder="email@gmail.com"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
 
                 <Input
                   label="Password"
                   type="password"
-                  placeholder="••••••••"
                   required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  error={error}
                 />
               </div>
 
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    className="w-3 h-3 text-[var(--color-primary)] border-[var(--color-border)] rounded focus:ring-[var(--color-primary)]" 
+                  <input
+                    type="checkbox"
+                    className="w-3 h-3 text-[var(--color-primary)] border-[var(--color-border)] rounded focus:ring-[var(--color-primary)]"
                   />
                   <span className="text-[var(--text-caption)] text-[var(--color-text-secondary)]">
                     Remember Me
@@ -69,8 +105,8 @@ export default function LoginPage() {
               </div>
 
               <div className="pt-2">
-                <Button variant="primary" fullWidth className="mt-6">
-                  Login
+                <Button variant="primary" fullWidth className="mt-6" disabled={loading}>
+                  {loading ? "Loading..." : "Login"}
                 </Button>
               </div>
             </form>
@@ -83,7 +119,7 @@ export default function LoginPage() {
                 </a>
               </p>
             </div>
-            
+
           </div>
         </div>
       </main>
