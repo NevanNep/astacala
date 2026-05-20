@@ -315,45 +315,12 @@ Purpose: Authenticate relawan to access dashboard.
 
 ## S02.2 — REGISTER PAGE
 
-Purpose: Allow new relawan to create an account.
-
-### Layout Structure:
-
-- EXACTLY same as S02 (Login Page):
-  - Full background image
-  - Centered floating card
-  - Same spacing, typography, and styling
-
----
-
-### Content Differences:
-
-- Title: "Sign up"
-
-### Form:
-
-- Name input
-- Email input
-- Password input
-- Confirm Password input
-
-- Primary button:
-  - Text: "Create Account"
-
----
-
-### Bottom Note:
-
-- "Already have an account? Sign in"
-- Link to /login
-
----
-
-### Rules:
-
-- MUST reuse same layout and components from S02
-- MUST NOT change layout structure
-- MUST NOT introduce new visual styles
+> ❌ OUT OF SCOPE — DO NOT IMPLEMENT
+>
+> Self-registration is not available in this system.
+> Relawan accounts are provisioned by admin (per BRS).
+> There is no register screen. The S02 login bottom note
+> directs users to contact admin instead.
 
 ## S03 — LUPA PASSWORD (STEP 1)
 
@@ -994,125 +961,100 @@ Location is already derived from GPS/map → manual input is redundant.
 - Show confirmation dialog  
 - Navigate to S07  
 
-Stepper State
-3 steps total
-Step 1: done ✓
-Step 2: active
-Step 3: todo
-Layout Structure
-Navbar — "‹ Buat Laporan" + step counter "2 / 3"
-Stepper (Lokasi | Kondisi | Kirim)
-Scrollable form content
-Fixed bottom button row
-Form Content
-Section
-Title: "Kondisi Bencana" (text-subheading)
+---
 
-1. Jenis Bencana \*
-   Type: Select / Dropdown
-   Options: Banjir, Gempa, Longsor, Kebakaran, Tsunami, Lainnya
-2. Tingkat Keparahan \*
-   4 chips: Ringan | Sedang | Parah | Kritis
-   Layout: flex row, gap-2
+## S09 — FORM LAPORAN: STEP 2 KONDISI
 
-Selected:
+### Stepper State:
 
-bg: color-primary
-text: white
-no border
+- Step 1: done ✓
+- Step 2: active
+- Step 3: todo
 
-Unselected:
+### Layout Structure:
 
-bg: gray / muted
-text: white or dark (ikut UI_SYSTEM)
-no border
-Radius: radius-full (pill)
-Padding: px-3 py-1.5
-Text: text-nano, center 3. Deskripsi Kondisi \*
-Type: textarea
-min-h-[100px]
-Placeholder: contoh deskripsi
+1. Status Bar
+2. Navbar — "‹ Buat Laporan" + step counter "2 / 3"
+3. Stepper (Lokasi | Kondisi | Kirim)
+4. Scrollable form content
+5. Fixed bottom button row
 
-Hint:
+### Form Content:
 
-"Min. 30 karakter · Jelaskan kondisi sejelas mungkin"
-text-nano, color-text-tertiary 4. Kebutuhan Mendesak
-Container:
-bg-white
-border
-rounded-lg
-p-4
-Chips (multi-select):
-Perahu, Logistik, Obat, Tenda, Medis, Alat Berat
-Layout: flex flex-wrap gap-2
+**Section Title:** "Kondisi Bencana" (`text-subheading`)
 
-Selected:
+**1. Jenis Bencana \***
+- Type: Select / Dropdown
+- Options: Banjir, Gempa, Longsor, Kebakaran, Tsunami, Lainnya
 
-bg: color-primary
-text: white
-no border
+**2. Tingkat Keparahan \***
+- 4 chips: Ringan | Sedang | Parah | Kritis
+- Layout: flex row, gap-2
+- Selected: bg `color-primary`, text white, no border
+- Unselected: bg gray/muted, no border
+- Radius: `radius-full` (pill), Padding: px-3 py-1.5, Text: `text-nano` center
 
-Unselected:
+**3. Deskripsi Kondisi \***
+- Type: textarea, min-h-[100px]
+- Placeholder: contoh deskripsi
+- Hint: "Min. 30 karakter · Jelaskan kondisi sejelas mungkin", `text-nano`, `color-text-tertiary`
 
-bg: gray / muted
-text: white / dark
-no border
-Radius: pill
-Padding: px-3 py-1.5
-(Optional but matches Figma scroll) 5. Foto Kejadian
-Grid: 2–3 columns
-Gap: 12px
-Each item:
-aspect-square
-border: 2px solid
-rounded-lg
-centered "+" icon
-Warning Box (Below Photo Section)
-Background: soft yellow
-Rounded: md
-Padding: p-4
-Icon: ⚠️
-Text:
-"Pastikan foto menunjukkan kondisi nyata di lapangan. Laporan dengan bukti yang jelas akan lebih cepat diverifikasi."
-Spacing Rules
-Section padding: px-4 py-6
-Between elements: space-y-4
-Button Row (FIXED)
-Position: fixed bottom-0 left-0 w-full
-Background: white
-Border top
-Padding: px-4 py-4
-Layout:
-Flex row, gap-2
+**4. Kebutuhan Mendesak** (optional)
+- Container: bg white, border, rounded-lg, p-4
+- Chips (multi-select): Perahu | Logistik | Obat | Tenda | Medis | Alat Berat
+- Layout: flex flex-wrap gap-2
+- Selected: bg `color-primary`, text white, no border
+- Unselected: bg gray/muted, no border
+- Radius: pill, Padding: px-3 py-1.5
 
-Left:
+**5. Foto Kejadian**
+- Grid: 2–3 columns, gap 12px
+- Each item: aspect-square, border 2px solid, rounded-lg, centered "+" icon
 
-"← Kembali"
-Outline
-flex-1
+**Warning Box (below photo section):**
+- Background: soft yellow, rounded-md, padding p-4, icon ⚠️
+- Text: "Pastikan foto menunjukkan kondisi nyata di lapangan. Laporan dengan bukti yang jelas akan lebih cepat diverifikasi."
 
-Right:
+### Removed Fields (IMPORTANT):
 
-"Lanjut"
-Primary
-flex-2
-Behaviors
-Lanjut
-Validate required fields
-Navigate → Step 3
-Kembali
-Navigate → Step 1
-❌ Removed (IMPORTANT)
-❌ Step ke-4 (tidak ada di Figma)
-❌ Estimasi korban terdampak
-❌ Border-based chip styling (diganti solid)
-❌ Textarea kecil (54px)
+- ❌ Estimasi korban terdampak (tidak ada di Figma)
+
+### Spacing Rules:
+
+- Section padding: px-4 py-6
+- Between elements: space-y-4
+
+### Button Row (FIXED):
+
+- Position: fixed bottom-0 left-0 w-full
+- Background: white, border top, padding px-4 py-4
+- Layout: flex row, gap-2
+- Left: "← Kembali", Outline, flex-1
+- Right: "Lanjut", Primary, flex-2
+
+### Behaviors:
+
+- "Lanjut" → validate required fields → Navigate to S10
+- "Kembali" → Navigate to S08
+
+### Removed from design (IMPORTANT):
+
+- ❌ Step ke-4 (flow is 3 steps only: Lokasi | Kondisi | Kirim)
+- ❌ Estimasi korban terdampak
+- ❌ Border-based chip styling (replaced with solid)
+- ❌ Textarea kecil (54px)
 
 ---
 
 ## S10 — FORM LAPORAN: STEP 3 MEDIA
 
-### Stepper State: Steps 1–2 done ✓, Step 3 active, Step 4 todo
+### Stepper State:
+
+- Step 1: done ✓
+- Step 2: done ✓
+- Step 3: active
+
+_(3-step flow: Lokasi | Kondisi | Kirim — no Step 4)_
 
 **Form Content:**
 
@@ -1212,15 +1154,13 @@ Rows:
 Koordinat
 Kecamatan
 Alamat (truncate)
-Section 2 — Kondisi Bencana
+**Section 2 — Kondisi Bencana:**
 
 Rows:
-
-Jenis
-Keparahan
-Terdampak → "±X jiwa · Y korban luka"
-Kebutuhan → comma separated
-Deskripsi (truncate)
+- Jenis
+- Keparahan
+- Kebutuhan → comma separated
+- Deskripsi (truncate)
 Section 3 — Media Bukti
 
 Rows:
@@ -1273,14 +1213,12 @@ Right Button:
 "Kirim"
 Primary
 flex-2
-Behaviors
-Click "Edit >"
-Lokasi → S08
-Kondisi → S09
-Media → S09
-Click "Kirim"
-Submit API
-Navigate → Success Page
+### Behaviors:
+
+- Click "Edit >" — Lokasi → S08
+- Click "Edit >" — Kondisi → S09
+- Click "Edit >" — Media → S10
+- Click "Kirim" → POST /api/reports → Navigate to S12 (Success)
 
 ---
 
@@ -1373,9 +1311,9 @@ Click button → Dashboard (S07)
 ### Filter Chips:
 
 - Semua (active)
-- Terbuka
-- Terdaftar
-- Tutup
+- Pending
+- Diterima
+- Ditolak
 
 ---
 
