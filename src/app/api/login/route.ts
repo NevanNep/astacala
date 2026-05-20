@@ -1,33 +1,42 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import bcrypt from 'bcryptjs'
-import { prisma } from '@/src/lib/db'
-import { encrypt } from '@/src/lib/session'
+import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { createClient } from "@/src/utils/supabase/server";
 
 export async function POST(request: NextRequest) {
-  const body = await request.json()
-  const { email, password } = body
+  try {
+    const body = await request.json();
+    const { email, password } = body;
 
-  if (!email || !password) {
-    return NextResponse.json({ error: 'Email dan password wajib diisi' }, { status: 400 })
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: "Email dan password wajib diisi" },
+        { status: 400 }
+      );
+    }
+
+    const supabase = createClient(await cookies());
+
+    const { data, error } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 401 }
+      );
+    }
+
+    return NextResponse.json({
+      user: data.user,
+      session: data.session,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
-
-  const user = await prisma.user.findUnique({ where: { email } })
-
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return NextResponse.json({ error: 'Email atau password salah' }, { status: 401 })
-  }
-
-  const token = await encrypt({ userId: user.id, email: user.email })
-
-  const cookieStore = await cookies()
-  cookieStore.set('session', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 86400,
-  })
-
-  return NextResponse.json({ user: { id: user.id, email: user.email } })
 }

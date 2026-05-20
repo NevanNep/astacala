@@ -1,15 +1,54 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const [nama, setNama] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nama, email, password, confirmPassword }),
+      });
+
+      if (res.ok) {
+        router.push("/dashboard");
+        router.refresh();
+      } else {
+        const data = await res.json();
+        const errorMsg = data.error ?? "Registrasi gagal. Coba lagi.";
+        setError(errorMsg);
+        alert("Register Error: " + errorMsg);
+      }
+    } catch (err: any) {
+      setError("Terjadi kesalahan. Coba lagi.");
+      alert("Network or Server Error: " + (err?.message || "Unknown"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col relative w-full">
       <main className="w-full relative flex-1 flex items-center justify-center overflow-hidden">
         
-        {/* Full Background Layout - Same as S02 */}
+        {/* Full Background Layout */}
         <div 
           className="absolute inset-0 w-full h-full z-0"
           style={{
@@ -33,13 +72,15 @@ export default function RegisterPage() {
               <div className="w-[32px] h-[3px] bg-[var(--color-primary)] rounded-full" />
             </div>
 
-            <form className="space-y-6 md:space-y-8" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-6 md:space-y-8" onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <Input
                   label="Name"
                   type="text"
                   placeholder="Relawan Name"
                   required
+                  value={nama}
+                  onChange={(e) => setNama(e.target.value)}
                 />
 
                 <Input
@@ -47,24 +88,31 @@ export default function RegisterPage() {
                   type="email"
                   placeholder="email@gmail.com"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
 
                 <Input
                   label="Password"
                   type="password"
                   required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
 
                 <Input
                   label="Confirm Password"
                   type="password"
                   required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  error={error}
                 />
               </div>
 
               <div className="pt-2">
-                <Button variant="primary" fullWidth className="mt-6">
-                  Create Account
+                <Button type="submit" variant="primary" fullWidth className="mt-6" disabled={loading}>
+                  {loading ? "Loading..." : "Create Account"}
                 </Button>
               </div>
             </form>
@@ -72,9 +120,9 @@ export default function RegisterPage() {
             <div className="mt-6 text-center">
               <p className="text-[var(--text-caption)] text-[var(--color-text-tertiary)]">
                 Already have an account?{" "}
-                <a href="/login" className="text-[var(--color-primary)] font-medium hover:underline">
+                <Link href="/login" className="text-[var(--color-primary)] font-medium hover:underline">
                   Sign in
-                </a>
+                </Link>
               </p>
             </div>
             

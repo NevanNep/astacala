@@ -302,6 +302,11 @@ FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "admin_select_profiles" ON profiles
 FOR SELECT USING (is_admin());
 
+-- New relawan can insert their own profile row
+-- (primary path: DB trigger auto-creates on signUp — this policy covers client-side retry)
+CREATE POLICY "insert_own_profile" ON profiles
+FOR INSERT WITH CHECK (auth.uid() = id);
+
 -- User updates their own profile
 CREATE POLICY "update_own_profile" ON profiles
 FOR UPDATE USING (auth.uid() = id);
@@ -364,7 +369,51 @@ const role = data.user.app_metadata?.role // 'pusat_kendali' or undefined
 ```
 
 Admin accounts are created via Supabase dashboard with `app_metadata: { role: 'pusat_kendali' }`.
-Self-registration is not implemented for either role.
+Relawan accounts are created via self-registration (S02.2). No registration page exists for admin.
+
+### Relawan Registration (S02.2)
+
+```js
+const { data, error } = await supabase.auth.signUp({
+  email,
+  password,
+  options: {
+    data: { nama } // stored in user_metadata — read by DB trigger
+  }
+})
+
+if (error) {
+  if (error.message.toLowerCase().includes('already registered')) {
+    // Show inline error: "Email sudah terdaftar"
+  }
+  return
+}
+
+// Profile row is auto-created by DB trigger below — no client insert needed
+// Redirect to /dashboard
+```
+
+**Profile auto-creation trigger (run once in Supabase SQL editor):**
+
+```sql
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, nama)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data ->> 'nama', '')
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+```
+
+This trigger runs with SECURITY DEFINER (bypasses RLS), ensuring the profile row is always created even if the client disconnects immediately after `signUp()` returns.
 
 ### Session management
 
@@ -1029,6 +1078,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 |--------|--------|-----------|
 | S01 Landing | Load berita | `supabase.from('berita').select()` |
 | S02 Login | Submit | `supabase.auth.signInWithPassword()` |
+| S02.2 Register | Submit | `supabase.auth.signUp()` → profile auto-created via DB trigger → redirect `/dashboard` |
 | S03 Lupa Password | Submit email | `supabase.auth.resetPasswordForEmail()` |
 | S05 Reset Password | Submit | `supabase.auth.updateUser()` |
 | S07 Dashboard | Load | `notifikasi` + `misi` + `berita` queries |

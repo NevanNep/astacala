@@ -203,7 +203,7 @@ Every interactive component MUST support:
 - Title: "Kamu Relawan Astacala? Masuk dan Mulai Melapor", `text-subheading`, weight 500, text-align center
 - Subtitle: `text-nano`, color `color-text-tertiary`, line-height 1.6
 - CTA Button: "Masuk sebagai Relawan →", Primary Button, full-width
-- Sub-link: "Belum punya akun? Hubungi admin Astacala", `text-micro`, `color-text-tertiary`, span "Hubungi admin Astacala" in `color-primary`
+- Sub-link: "Belum punya akun? Daftar sekarang", `text-micro`, `color-text-tertiary`, span "Daftar sekarang" in `color-primary`, links to /register
 
 **Hamburger Drawer (S01 — Public variant):**
 
@@ -278,9 +278,9 @@ Purpose: Authenticate relawan to access dashboard.
 
 ### Bottom Note:
 
-- "Don’t have an account? Sign up"
+- "Belum punya akun? Daftar sekarang"
 - Centered text
-- Use text-nano or text-caption
+- "Daftar sekarang" is a link → /register (`color-primary`)
 
 ---
 
@@ -308,19 +308,106 @@ Purpose: Authenticate relawan to access dashboard.
 
 ### Behavior:
 
-- Login success → S07 (Main Page)
+- Login success → check `app_metadata.role` → admin: `/admin/dashboard`, relawan: `/dashboard`
 - Forgot password → S03
+- "Daftar sekarang" → S02.2 (Register)
 
 ---
 
 ## S02.2 — REGISTER PAGE
 
-> ❌ OUT OF SCOPE — DO NOT IMPLEMENT
->
-> Self-registration is not available in this system.
-> Relawan accounts are provisioned by admin (per BRS).
-> There is no register screen. The S02 login bottom note
-> directs users to contact admin instead.
+Purpose: Allow new relawan to self-register an account.
+
+### Layout Structure:
+
+- EXACTLY same as S02 (Login Page):
+  - Full background image (same rescuer context)
+  - Dark overlay
+  - Centered floating card
+  - Same spacing, typography, and styling rules
+
+---
+
+### Content Details:
+
+- Title: "Daftar Akun"
+  - `text-heading`, weight 600, text-align center
+- Underline accent below title (`color-primary`)
+
+---
+
+### Form:
+
+1. **Nama Lengkap** input
+   - Placeholder: "Masukkan nama lengkap"
+   - Type: text
+
+2. **Email** input
+   - Placeholder: "email@astacala.id"
+   - Type: email
+
+3. **Password** input
+   - Placeholder: "Min. 8 karakter"
+   - Type: password, visibility toggle icon
+   - Show `PasswordStrengthBar` below input
+
+4. **Konfirmasi Password** input
+   - Placeholder: "Ulangi password"
+   - Type: password, visibility toggle icon
+
+- Primary button:
+  - Text: "Daftar"
+  - Full width
+  - Margin-top: 24px
+  - Disabled state while loading
+
+---
+
+### Validation (inline, shown on submit):
+
+| Field | Rule | Error message |
+|-------|------|---------------|
+| Nama Lengkap | Required | "Nama tidak boleh kosong" |
+| Email | Valid format | "Format email tidak valid" |
+| Email | Unique | "Email sudah terdaftar" |
+| Password | Min 8 chars | "Password minimal 8 karakter" |
+| Konfirmasi Password | Matches password | "Password tidak cocok" |
+
+- Errors shown as inline red text below each field
+- Input border changes to `color-danger` on error
+- Errors clear on re-input
+
+---
+
+### Bottom Note:
+
+- "Sudah punya akun? Masuk di sini"
+- Centered text, `text-nano` or `text-caption`
+- "Masuk di sini" is a link → /login (`color-primary`)
+
+---
+
+### Visual Style:
+
+- MUST reuse same layout and components from S02
+- Do NOT introduce new visual styles
+
+---
+
+### Behavior:
+
+- Valid form submit → `supabase.auth.signUp()` → profile row auto-created via DB trigger → redirect to `/dashboard`
+- Duplicate email → show inline error "Email sudah terdaftar"
+- "Masuk di sini" → S02 (Login)
+
+---
+
+### Rules:
+
+- Use `Input` component from COMPONENT_MAP.md for all fields
+- Use `PasswordStrengthBar` component for password field
+- Use `Button` component (primary, fullWidth, loading) for submit
+- MUST NOT add extra fields beyond the four specified
 
 ## S03 — LUPA PASSWORD (STEP 1)
 

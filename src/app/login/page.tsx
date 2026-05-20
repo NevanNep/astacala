@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 /*import { Navbar } from "../../components/Navbar";*/
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
@@ -13,10 +14,11 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(e?: React.FormEvent | React.MouseEvent) {
+    if (e) e.preventDefault();
     setError("");
     setLoading(true);
+    console.log("Submitting login with:", email);
 
     try {
       const res = await fetch("/api/login", {
@@ -25,14 +27,24 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
+      console.log("Login response status:", res.status);
+
       if (res.ok) {
+        console.log("Login successful, redirecting...");
         router.push("/dashboard");
+        router.refresh();
+        return; // Early return to prevent state update after navigation starts
       } else {
         const data = await res.json();
-        setError(data.error ?? "Login gagal. Coba lagi.");
+        const errorMsg = data.error ?? "Login gagal. Coba lagi.";
+        console.error("Login failed:", errorMsg);
+        setError(errorMsg);
+        alert("Login Error: " + errorMsg);
       }
-    } catch {
+    } catch (err: any) {
+      console.error("Fetch error:", err);
       setError("Terjadi kesalahan. Coba lagi.");
+      alert("Network or Server Error: " + (err?.message || "Unknown"));
     } finally {
       setLoading(false);
     }
@@ -99,13 +111,13 @@ export default function LoginPage() {
                     Remember Me
                   </span>
                 </label>
-                <a href="#" className="text-[var(--text-caption)] font-medium text-[var(--color-primary)] hover:underline">
+                <Link href="/forgot-password" className="text-[var(--text-caption)] font-medium text-[var(--color-primary)] hover:underline">
                   Forgot Password?
-                </a>
+                </Link>
               </div>
 
               <div className="pt-2">
-                <Button variant="primary" fullWidth className="mt-6" disabled={loading}>
+                <Button type="submit" onClick={handleSubmit} variant="primary" fullWidth className="mt-6" disabled={loading}>
                   {loading ? "Loading..." : "Login"}
                 </Button>
               </div>
@@ -114,9 +126,9 @@ export default function LoginPage() {
             <div className="mt-6 text-center">
               <p className="text-[var(--text-caption)] text-[var(--color-text-tertiary)]">
                 Don&apos;t have an account?{" "}
-                <a href="#" className="text-[var(--color-primary)] font-medium hover:underline">
+                <Link href="/register" className="text-[var(--color-primary)] font-medium hover:underline">
                   Sign up
-                </a>
+                </Link>
               </p>
             </div>
 
