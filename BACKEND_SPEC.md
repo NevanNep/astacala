@@ -22,7 +22,7 @@ Admin role is identified via `app_metadata.role = 'pusat_kendali'` set in Supaba
 Custom Next.js API routes exist only where server-side logic is unavoidable.
 
 **Custom API routes (only 3):**
-1. `POST /api/laporan` — server-side report ID generation
+1. `POST /api/reports` — server-side report ID generation
 2. `PATCH /api/admin/laporan/[id]` — verify/reject report + trigger notification
 3. `POST /api/admin/misi/notify` — broadcast misi_baru notification to all relawan
 
