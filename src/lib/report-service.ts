@@ -1,6 +1,5 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { decrypt } from "@/src/lib/session";
 import { createAdminClient } from "@/src/utils/supabase/admin";
 import { createClient } from "@/src/utils/supabase/server";
 
@@ -9,11 +8,18 @@ const SEVERITIES = ["Ringan", "Sedang", "Parah", "Kritis"] as const;
 const REPORT_STATUSES = ["Pending", "Diterima", "Ditolak"] as const;
 const MAX_MEDIA_PER_REPORT = 5;
 const MEDIA_BUCKET = "laporan-media";
+const ALLOWED_IMAGE_MIME_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+const ALLOWED_IMAGE_EXTENSIONS = /\.(png|jpe?g|webp)$/i;
 
 type DisasterType = (typeof DISASTER_TYPES)[number];
 type Severity = (typeof SEVERITIES)[number];
 type ReportStatus = (typeof REPORT_STATUSES)[number];
-type MediaType = "foto" | "video";
+type MediaType = "foto";
+type ReportMediaEntry = {
+  storage_path: string;
+  type: MediaType;
+  submittedType?: string;
+};
 
 type ReportPayload = {
   judul: string;
@@ -25,7 +31,7 @@ type ReportPayload = {
   keparahan: Severity;
   deskripsi: string;
   kebutuhan: string[];
-  media: Array<{ storage_path: string; type: MediaType }>;
+  media: ReportMediaEntry[];
   files: File[];
 };
 
@@ -73,12 +79,6 @@ function parseStringArray(value: unknown) {
   }
 }
 
-function inferMediaType(pathOrName: string, mimeType?: string): MediaType {
-  if (mimeType?.startsWith("video/")) return "video";
-  if (/\.(mp4|mov|m4v|webm|avi|mkv)$/i.test(pathOrName)) return "video";
-  return "foto";
-}
-
 function mediaEntryCandidates(value: unknown): unknown[] {
   if (Array.isArray(value)) {
     return value.flatMap((item) => mediaEntryCandidates(item));
@@ -103,19 +103,45 @@ function parseMediaEntries(value: unknown) {
     .map((item) => {
       if (typeof item === "string") {
         const storagePath = item.trim();
-        return storagePath ? { storage_path: storagePath, type: inferMediaType(storagePath) } : null;
+        return storagePath ? { storage_path: storagePath, type: "foto" as const } : null;
       }
 
       if (item && typeof item === "object") {
         const record = item as Record<string, unknown>;
         const storagePath = asText(record.storage_path ?? record.path);
-        const type = record.type === "video" ? "video" : inferMediaType(storagePath);
-        return storagePath ? { storage_path: storagePath, type } : null;
+        const submittedType = asText(record.type).toLowerCase();
+        return storagePath
+          ? {
+              storage_path: storagePath,
+              type: "foto" as const,
+              ...(submittedType ? { submittedType } : {}),
+            }
+          : null;
       }
 
       return null;
     })
-    .filter((item): item is { storage_path: string; type: MediaType } => Boolean(item));
+    .filter((item): item is ReportMediaEntry => Boolean(item));
+}
+
+function isAllowedImagePath(storagePath: string) {
+  return ALLOWED_IMAGE_EXTENSIONS.test(storagePath);
+}
+
+function validateImageFile(file: File) {
+  if (!ALLOWED_IMAGE_MIME_TYPES.has(file.type)) {
+    return `File "${file.name}" tidak didukung. Gunakan PNG, JPG, JPEG, atau WebP.`;
+  }
+
+  if (!isAllowedImagePath(file.name)) {
+    return `File "${file.name}" harus berekstensi .png, .jpg, .jpeg, atau .webp.`;
+  }
+
+  return null;
+}
+
+function hasUnsupportedSubmittedMediaType(item: ReportMediaEntry) {
+  return Boolean(item.submittedType && item.submittedType !== "foto");
 }
 
 function validatePayload(payload: ReportPayload) {
@@ -135,6 +161,19 @@ function validatePayload(payload: ReportPayload) {
   }
   if (payload.deskripsi.length < 30) {
     return { error: "Deskripsi kondisi minimal 30 karakter", field: "deskripsi" };
+  }
+  const invalidMediaPath = payload.media.find(
+    (item) => hasUnsupportedSubmittedMediaType(item) || !isAllowedImagePath(item.storage_path)
+  );
+  if (invalidMediaPath) {
+    return {
+      error: "Media laporan hanya mendukung gambar PNG, JPG, JPEG, atau WebP",
+      field: "media_paths",
+    };
+  }
+  const invalidFileError = payload.files.map(validateImageFile).find(Boolean);
+  if (invalidFileError) {
+    return { error: invalidFileError, field: "media" };
   }
   if (payload.media.length + payload.files.length > MAX_MEDIA_PER_REPORT) {
     return { error: `Media maksimal ${MAX_MEDIA_PER_REPORT} file`, field: "media" };
@@ -217,11 +256,7 @@ async function getAuthenticatedUser(request: NextRequest): Promise<Authenticated
     return { id: user.id, email: user.email };
   }
 
-  const legacyToken = cookieStore.get("session")?.value;
-  if (!legacyToken) return null;
-
-  const legacySession = await decrypt(legacyToken);
-  return legacySession ? { id: legacySession.userId, email: legacySession.email } : null;
+  return null;
 }
 
 async function generateReportId(db: ReturnType<typeof createClient>, year = new Date().getFullYear()) {
@@ -253,13 +288,28 @@ function safeFileName(fileName: string) {
   return sanitized || "media";
 }
 
+function isAllowedMediaPath(storagePath: string, userId: string, reportId: string) {
+  const parts = storagePath.split("/");
+  const hasUnsafeSegment = parts.some((part) => !part || part === "." || part === "..");
+
+  if (hasUnsafeSegment || parts[0] !== userId) {
+    return false;
+  }
+
+  if (parts.length === 2) {
+    return true;
+  }
+
+  return parts.length === 3 && parts[1] === reportId;
+}
+
 async function uploadMediaFiles(
   db: ReturnType<typeof createClient>,
   userId: string,
   reportId: string,
   files: File[]
 ) {
-  const uploaded: Array<{ storage_path: string; type: MediaType }> = [];
+  const uploaded: ReportMediaEntry[] = [];
 
   for (const [index, file] of files.entries()) {
     const storagePath = `${userId}/${reportId}/${Date.now()}-${index}-${safeFileName(file.name)}`;
@@ -274,7 +324,7 @@ async function uploadMediaFiles(
 
     uploaded.push({
       storage_path: storagePath,
-      type: inferMediaType(file.name, file.type),
+      type: "foto",
     });
   }
 
@@ -302,6 +352,18 @@ export async function POST(request: NextRequest) {
     const userClient = createClient(cookieStore);
     const db = createAdminClient() ?? userClient;
     const laporanId = await generateReportId(db);
+    const invalidMediaPath = payload.media.find(
+      (item) => !isAllowedMediaPath(item.storage_path, user.id, laporanId)
+    );
+
+    if (invalidMediaPath) {
+      return jsonError(
+        "Media path harus berada di folder pengguna yang sedang login",
+        400,
+        "media_paths"
+      );
+    }
+
     const uploadedMedia = payload.files.length > 0
       ? await uploadMediaFiles(db, user.id, laporanId, payload.files)
       : [];

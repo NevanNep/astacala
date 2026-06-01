@@ -1,30 +1,39 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { decrypt } from '@/src/lib/session'
-import { prisma } from '@/src/lib/db'
+import { createClient } from '@/src/utils/supabase/server'
 
-export async function GET(_request: NextRequest) {
-  const cookieStore = await cookies()
-  const token = cookieStore.get('session')?.value
+export async function GET() {
+  const supabase = createClient(await cookies())
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser()
 
-  if (!token) {
+  if (userError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const session = await decrypt(token)
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role, nama, nim, no_hp')
+    .eq('id', user.id)
+    .maybeSingle()
 
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (profileError) {
+    return NextResponse.json(
+      { error: 'Failed to load profile' },
+      { status: 500 }
+    )
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-    select: { id: true, email: true },
+  return NextResponse.json({
+    user: {
+      id: user.id,
+      email: user.email ?? null,
+      role: profile?.role ?? null,
+      nama: profile?.nama ?? null,
+      nim: profile?.nim ?? null,
+      no_hp: profile?.no_hp ?? null,
+    },
   })
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  return NextResponse.json({ user })
 }
