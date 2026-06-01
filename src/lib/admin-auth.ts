@@ -1,4 +1,4 @@
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createClient as createSupabaseClient, SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/src/utils/supabase/admin";
@@ -7,6 +7,15 @@ import { createClient } from "@/src/utils/supabase/server";
 type Profile = {
   role: string | null;
 };
+
+type AuthenticatedUser = {
+  id: string;
+  email?: string | null;
+};
+
+type AuthResult =
+  | { user: AuthenticatedUser; adminClient: SupabaseClient }
+  | { error: NextResponse };
 
 export function jsonError(error: string, status: number, field?: string) {
   return NextResponse.json({ error, ...(field ? { field } : {}) }, { status });
@@ -39,6 +48,37 @@ function createBearerClient(token: string) {
 }
 
 export async function authorizeAdmin(request: NextRequest) {
+  const auth = await authorizeUser(request);
+  if ("error" in auth) {
+    return auth;
+  }
+
+  const bearerToken = getBearerToken(request);
+  const cookieStore = await cookies();
+  const authClient = bearerToken ? createBearerClient(bearerToken) : createClient(cookieStore);
+
+  if (!authClient) {
+    return { error: jsonError("Supabase client is not configured", 500) };
+  }
+
+  const { data: profile, error: profileError } = await authClient
+    .from("profiles")
+    .select("role")
+    .eq("id", auth.user.id)
+    .maybeSingle<Profile>();
+
+  if (profileError) {
+    return { error: jsonError("Failed to load profile", 500) };
+  }
+
+  if (profile?.role !== "admin") {
+    return { error: jsonError("Forbidden", 403) };
+  }
+
+  return auth;
+}
+
+export async function authorizeUser(request: NextRequest): Promise<AuthResult> {
   const cookieStore = await cookies();
   const cookieClient = createClient(cookieStore);
   const bearerToken = getBearerToken(request);
@@ -55,20 +95,6 @@ export async function authorizeAdmin(request: NextRequest) {
 
   if (userError || !user) {
     return { error: jsonError("Unauthorized", 401) };
-  }
-
-  const { data: profile, error: profileError } = await authClient
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle<Profile>();
-
-  if (profileError) {
-    return { error: jsonError("Failed to load profile", 500) };
-  }
-
-  if (profile?.role !== "admin") {
-    return { error: jsonError("Forbidden", 403) };
   }
 
   const adminClient = createAdminClient();
