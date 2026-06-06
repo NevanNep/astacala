@@ -402,15 +402,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { error: draftDeleteError } = await db
-      .from("report_drafts")
-      .delete()
-      .eq("user_id", user.id);
-
-    if (draftDeleteError) {
-      console.error("Delete report draft after submit error:", draftDeleteError);
-    }
-
+    // TODO: Legacy cleanup. S08-S10 drafts now live in the client Zustand store,
+    // and some Supabase projects no longer have a report_drafts table.
     cookieStore.delete("report_draft");
 
     return NextResponse.json(

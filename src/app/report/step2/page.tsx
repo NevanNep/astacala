@@ -1,250 +1,346 @@
 "use client";
 
-import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Navbar } from "../../../components/Navbar";
 import { Stepper } from "../../../components/Stepper";
-
-const JENIS_BENCANA_OPTIONS = [
-  "Banjir",
-  "Gempa",
-  "Longsor",
-  "Kebakaran",
-  "Tsunami",
-  "Lainnya",
-];
-
-const SEVERITY_OPTIONS = ["Ringan", "Sedang", "Parah", "Kritis"];
-
-const KEBUTUHAN_OPTIONS = [
-  "Perahu",
-  "Logistik",
-  "Obat",
-  "Tenda",
-  "Medis",
-  "Alat Berat",
-];
+import {
+  DISASTER_TYPES,
+  DisasterType,
+  NEED_OPTIONS,
+  ReportMediaItem,
+  SEVERITY_OPTIONS,
+  Severity,
+  addReportMediaFile,
+  getReportMediaItems,
+  removeReportMediaFile,
+} from "../../../lib/report-flow";
+import { useReportDraftStore } from "../../../lib/report-draft-store";
 
 export default function Step2KondisiPage() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const draft = useReportDraftStore((state) => state.draft);
+  const setCondition = useReportDraftStore((state) => state.setCondition);
+  const [media, setMedia] = useState<ReportMediaItem[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { jenis_bencana: jenisBencana, keparahan: severity, deskripsi, kebutuhan } = draft;
 
-  const [jenisBencana, setJenisBencana] = useState("");
-  const [severity, setSeverity] = useState("");
-  const [deskripsi, setDeskripsi] = useState("");
-  const [kebutuhan, setKebutuhan] = useState<string[]>([]);
+  const previews = useMemo(
+    () =>
+      media.map((item) => ({
+        id: item.id,
+        name: item.name,
+        url: URL.createObjectURL(item.file),
+      })),
+    [media]
+  );
 
-  const toggleKebutuhan = (item: string) => {
-    setKebutuhan((prev) =>
-      prev.includes(item) ? prev.filter((k) => k !== item) : [...prev, item]
-    );
-  };
+  useEffect(() => {
+    return () => {
+      previews.forEach((preview) => URL.revokeObjectURL(preview.url));
+    };
+  }, [previews]);
 
-  const handleLanjut = () => {
-    // Basic validation
-    if (!jenisBencana) return alert("Pilih jenis bencana");
-    if (!severity) return alert("Pilih tingkat keparahan");
-    if (deskripsi.length < 30)
-      return alert("Deskripsi minimal 30 karakter");
+  useEffect(() => {
+    let mounted = true;
 
-    router.push("/report/step3");
-  };
+    async function loadMedia() {
+      try {
+        const storedMedia = await getReportMediaItems();
+        if (mounted) setMedia(storedMedia);
+      } catch (err) {
+        if (mounted) {
+          setError(err instanceof Error ? err.message : "Gagal memuat media laporan.");
+        }
+      }
+    }
+
+    loadMedia();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  function updateCondition(fields: Partial<{
+    jenis_bencana: DisasterType | "";
+    keparahan: Severity | "";
+    deskripsi: string;
+    kebutuhan: string[];
+  }>) {
+    setCondition({
+      jenis_bencana: fields.jenis_bencana ?? jenisBencana,
+      keparahan: fields.keparahan ?? severity,
+      deskripsi: fields.deskripsi ?? deskripsi,
+      kebutuhan: fields.kebutuhan ?? kebutuhan,
+    });
+  }
+
+  function toggleKebutuhan(item: string) {
+    updateCondition({
+      kebutuhan: kebutuhan.includes(item)
+        ? kebutuhan.filter((value) => value !== item)
+        : [...kebutuhan, item],
+    });
+  }
+
+  async function handleMediaChange(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    if (files.length === 0) return;
+
+    setError(null);
+
+    try {
+      let nextMedia = await getReportMediaItems();
+      for (const file of files) {
+        await addReportMediaFile(file);
+        nextMedia = await getReportMediaItems();
+      }
+      setMedia(nextMedia);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal menambahkan media.");
+    } finally {
+      event.target.value = "";
+    }
+  }
+
+  async function handleRemoveMedia(id: string) {
+    await removeReportMediaFile(id);
+    setMedia(await getReportMediaItems());
+  }
+
+  async function handleLanjut() {
+    setError(null);
+
+    if (!jenisBencana) {
+      setError("Pilih jenis bencana.");
+      return;
+    }
+
+    if (!severity) {
+      setError("Pilih tingkat keparahan.");
+      return;
+    }
+
+    if (deskripsi.trim().length < 30) {
+      setError("Deskripsi kondisi minimal 30 karakter.");
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      setCondition({
+        jenis_bencana: jenisBencana,
+        keparahan: severity,
+        deskripsi: deskripsi.trim(),
+        kebutuhan,
+      });
+      router.push("/report/step3");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal menyimpan kondisi laporan.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      {/* Navbar */}
+    <div className="min-h-screen bg-white">
       <Navbar
         variant="flow"
-        showBack={true}
+        showBack
         title="Buat Laporan"
-        rightElement={
-          <span className="text-[16px] font-medium text-[var(--color-text-primary)]">
-            2/3
-          </span>
-        }
+        rightElement={<span className="text-[20px] font-semibold text-[var(--color-text-primary)]">2/3</span>}
       />
 
-      {/* Stepper */}
-      <div className="w-full border-b border-[var(--color-border)]">
-        <Stepper steps={["Lokasi", "Kondisi", "Kirim"]} currentStep={2} />
+      <div className="border-b border-[#8E8E8E]">
+        <div className="mx-auto w-full max-w-[860px] px-4 md:px-8">
+          <Stepper steps={["Lokasi", "Kondisi", "Kirim"]} currentStep={2} />
+        </div>
       </div>
 
-      {/* Scrollable Form Content */}
-      <main className="w-full flex-1 overflow-y-auto px-5 md:px-6 lg:px-8 pt-6 pb-32 max-w-[800px] mx-auto">
-        {/* Section Title */}
-        <h1 className="text-[20px] font-medium text-[var(--color-text-primary)] mb-5">
+      <main className="mx-auto w-full max-w-[860px] px-7 pb-36 pt-5 md:px-8">
+        <h1 className="mb-3 text-[20px] font-semibold text-[var(--color-text-primary)]">
           Kondisi Bencana
         </h1>
 
-        <div className="space-y-5">
-          {/* 1. Jenis Bencana */}
-          <div className="flex flex-col">
-            <label className="text-[14px] font-medium text-[var(--color-text-primary)] mb-2">
-              Jenis Bencana <span className="text-[var(--color-primary)]">*</span>
-            </label>
+        {error && (
+          <div className="mb-4 rounded-[8px] border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-[var(--color-primary)]">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-5 opacity-100">
+          <label className="block">
+            <span className="mb-2 block text-[14px] font-semibold text-[var(--color-text-primary)]">
+              Jenis Bencana
+            </span>
             <div className="relative">
               <select
                 value={jenisBencana}
-                onChange={(e) => setJenisBencana(e.target.value)}
-                className="w-full appearance-none bg-white border border-[var(--color-border)] rounded-[16px] py-3 px-4 pr-10 text-[14px] text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)] transition-colors cursor-pointer"
+                onChange={(event) =>
+                  updateCondition({ jenis_bencana: event.target.value as DisasterType | "" })
+                }
+                className="h-[52px] w-full appearance-none rounded-[8px] border border-[#8E8E8E] bg-white px-3 pr-10 text-[14px] font-medium text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)] disabled:opacity-60"
               >
-                <option value="" disabled>
-                  Pilih jenis bencana
-                </option>
-                {JENIS_BENCANA_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
+                <option value="">Pilih jenis bencana</option>
+                {DISASTER_TYPES.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
                   </option>
                 ))}
               </select>
-              {/* Dropdown Arrow */}
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
-                <svg
-                  width="12"
-                  height="8"
-                  viewBox="0 0 12 8"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M1 1.5L6 6.5L11 1.5"
-                    stroke="var(--color-text-tertiary)"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
+              <span className="pointer-events-none absolute right-4 top-1/2 h-3 w-3 -translate-y-1/2 rotate-45 border-b-[4px] border-r-[4px] border-[var(--color-text-primary)]" />
             </div>
-          </div>
+          </label>
 
-          {/* 2. Tingkat Keparahan */}
-          <div className="flex flex-col">
-            <label className="text-[14px] font-medium text-[var(--color-text-primary)] mb-2">
-              Tingkat Keparahan <span className="text-[var(--color-primary)]">*</span>
-            </label>
-            <div className="flex gap-2 flex-wrap">
+          <section>
+            <h2 className="mb-3 text-[14px] font-semibold text-[var(--color-text-primary)]">
+              Tingkat Keparahan
+            </h2>
+            <div className="flex flex-wrap gap-5">
               {SEVERITY_OPTIONS.map((level) => (
                 <button
                   key={level}
                   type="button"
-                  onClick={() => setSeverity(level)}
-                  className={`px-4 py-2 rounded-full text-[13px] font-medium transition-colors ${
+                  onClick={() => updateCondition({ keparahan: level })}
+                  className={`h-7 rounded-full px-3 text-[12px] font-semibold ${
                     severity === level
                       ? "bg-[var(--color-primary)] text-white"
-                      : "bg-[#E0E0E0] text-[var(--color-text-primary)]"
+                      : "bg-[#757575] text-white"
                   }`}
                 >
                   {level}
                 </button>
               ))}
             </div>
-          </div>
+          </section>
 
-          {/* 3. Deskripsi Kondisi */}
-          <div className="flex flex-col">
-            <label className="text-[14px] font-medium text-[var(--color-text-primary)] mb-2">
-              Deskripsi Kondisi <span className="text-[var(--color-primary)]">*</span>
-            </label>
+          <label className="block">
+            <span className="mb-2 block text-[14px] font-semibold text-[var(--color-text-primary)]">
+              Deskripsi Kondisi
+            </span>
             <textarea
               value={deskripsi}
-              onChange={(e) => setDeskripsi(e.target.value)}
+              onChange={(event) => updateCondition({ deskripsi: event.target.value })}
               placeholder="Tinggi air mencapai 2 meter"
-              className="w-full bg-white border border-[var(--color-border)] rounded-[16px] py-3 px-4 text-[14px] text-[var(--color-text-primary)] placeholder-[var(--color-text-tertiary)] outline-none focus:border-[var(--color-primary)] transition-colors resize-none min-h-[120px]"
+              className="min-h-[100px] w-full resize-none rounded-[8px] border border-[#8E8E8E] bg-white px-3 py-3 text-[14px] leading-relaxed text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)] md:min-h-[130px]"
             />
-            <p className="text-[12px] text-[var(--color-text-tertiary)] mt-1.5">
-              Min. 30 Karakter · Jelaskan kondisi sejelas mungkin
-            </p>
-          </div>
+            <span className="mt-1 block text-[10px] text-[var(--color-text-secondary)]">
+              Min. 30 Karakter- Jelaskan kondisi sejelas mungkin
+            </span>
+          </label>
 
-          {/* 4. Kebutuhan Mendesak */}
-          <div className="flex flex-col">
-            <label className="text-[14px] font-medium text-[var(--color-text-primary)] mb-2">
-              Kebutuhan Mendesak
-            </label>
-            <div className="bg-white border border-[var(--color-border)] rounded-[16px] p-4">
-              <div className="flex flex-wrap gap-2">
-                {KEBUTUHAN_OPTIONS.map((item) => (
+            <section>
+              <h2 className="mb-2 text-[14px] font-semibold text-[var(--color-text-primary)]">
+                Kebutuhan Mendesak
+              </h2>
+              <div className="min-h-[112px] rounded-[8px] border border-[#8E8E8E] bg-white p-3">
+                <div className="flex flex-wrap gap-2">
+                  {NEED_OPTIONS.map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => toggleKebutuhan(item)}
+                      className={`h-6 rounded-full px-3 text-[12px] font-semibold ${
+                        kebutuhan.includes(item)
+                          ? "bg-[var(--color-primary)] text-white"
+                          : "bg-[#757575] text-white"
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  ))}
                   <button
-                    key={item}
                     type="button"
-                    onClick={() => toggleKebutuhan(item)}
-                    className={`px-4 py-2 rounded-full text-[13px] font-medium transition-colors ${
-                      kebutuhan.includes(item)
-                        ? "bg-[var(--color-primary)] text-white"
-                        : "bg-[#E0E0E0] text-[var(--color-text-primary)]"
-                    }`}
+                    className="h-6 rounded-full bg-[#757575] px-5 text-[16px] font-semibold leading-none text-white"
+                    aria-label="Tambah kebutuhan lain"
                   >
-                    {item}
+                    +
                   </button>
-                ))}
+                </div>
               </div>
-            </div>
-          </div>
+            </section>
 
-          {/* 5. Foto Kejadian */}
-          <div className="flex flex-col">
-            <label className="text-[14px] font-medium text-[var(--color-text-primary)] mb-3">
-              Foto Kejadian
-            </label>
-            <div className="grid grid-cols-3 gap-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className="aspect-square border-2 border-[var(--color-border)] rounded-xl flex items-center justify-center bg-white hover:bg-[var(--color-bg-muted)] transition-colors"
-                >
-                  <svg
-                    width="28"
-                    height="28"
-                    viewBox="0 0 28 28"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M14 6V22M6 14H22"
-                      stroke="var(--color-text-primary)"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </button>
-              ))}
-            </div>
-          </div>
+            <section>
+              <h2 className="mb-4 text-[20px] font-semibold text-[var(--color-text-primary)]">
+                Foto Kejadian
+              </h2>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                multiple
+                className="hidden"
+                onChange={handleMediaChange}
+              />
+              <div className="grid grid-cols-3 gap-x-9 gap-y-7">
+                {Array.from({ length: 5 }).map((_, index) => {
+                  const preview = previews[index];
 
-          {/* Warning Box */}
-          <div className="bg-[#FFF3CD] rounded-xl p-4 flex gap-3 items-start">
-            <span className="text-[18px] shrink-0 mt-0.5">⚠️</span>
-            <p className="text-[12px] text-[#856404] leading-relaxed">
-              Pastikan foto menunjukkan kondisi nyata di lapangan. Laporan
-              dengan bukti yang jelas akan lebih cepat diverifikasi.
-            </p>
-          </div>
+                  return preview ? (
+                    <button
+                      key={preview.id}
+                      type="button"
+                      onClick={() => handleRemoveMedia(preview.id)}
+                      className="relative flex h-[76px] w-[82px] items-center justify-center overflow-hidden rounded-[8px] border-[3px] border-[var(--color-text-primary)] bg-white"
+                      title="Hapus foto"
+                    >
+                      {/* TODO: Add video once the report API supports video uploads end to end. */}
+                      <span
+                        className="block h-full w-full bg-cover bg-center"
+                        style={{ backgroundImage: `url("${preview.url}")` }}
+                        role="img"
+                        aria-label={preview.name}
+                      />
+                    </button>
+                  ) : (
+                    <button
+                      key={`empty-${index}`}
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex h-[76px] w-[82px] items-center justify-center rounded-[8px] border-[3px] border-[var(--color-text-primary)] bg-white"
+                      aria-label="Tambah foto"
+                    >
+                      <span className="relative h-9 w-9 before:absolute before:left-1/2 before:top-0 before:h-full before:w-[3px] before:-translate-x-1/2 before:bg-[var(--color-text-primary)] after:absolute after:left-0 after:top-1/2 after:h-[3px] after:w-full after:-translate-y-1/2 after:bg-[var(--color-text-primary)]" />
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="mt-7 flex gap-2 rounded-[8px] bg-[#FFD994] px-3 py-2 text-[13px] leading-tight text-[var(--color-primary)]">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[var(--color-text-primary)] text-[12px] font-bold text-[var(--color-text-primary)]">
+                  !
+                </span>
+                <p>
+                  Pastikan foto menunjukkan kondisi nyata di lapangan. Laporan dengan bukti yang jelas akan lebih cepat
+                  diverifikasi.
+                </p>
+              </div>
+            </section>
         </div>
       </main>
 
-      {/* Fixed Bottom Button Row */}
-      <div className="fixed bottom-0 left-0 w-full bg-white border-t border-[var(--color-border)] px-5 py-4 z-50">
-        <div className="max-w-[800px] mx-auto flex gap-3">
-          <div className="flex-1">
-            <button
-              className="w-full py-3 px-4 rounded-[16px] border border-[var(--color-border)] text-[14px] font-medium text-[var(--color-text-secondary)] bg-white active:bg-gray-50 transition-colors"
-              onClick={() => router.push("/report/step1")}
-            >
-              ← Kembali
-            </button>
-          </div>
-          <div className="flex-[2]">
-            <button
-              className="w-full py-3 px-4 rounded-[16px] bg-[var(--color-primary)] text-[14px] font-medium text-white active:opacity-90 transition-colors"
-              onClick={handleLanjut}
-            >
-              Lanjut
-            </button>
-          </div>
+      <div className="fixed bottom-0 left-0 z-50 w-full border-t border-[var(--color-border)] bg-white py-6">
+        <div className="mx-auto flex w-full max-w-[860px] items-center justify-between gap-5 px-7 md:px-8">
+          <button
+            type="button"
+            onClick={() => router.push("/report/step1")}
+            disabled={saving}
+            className="h-10 min-w-[132px] rounded-[8px] border border-[#8E8E8E] bg-white px-4 text-[18px] font-semibold text-[var(--color-text-primary)] disabled:opacity-60"
+          >
+            &larr; Kembali
+          </button>
+          <button
+            type="button"
+            onClick={handleLanjut}
+            disabled={saving}
+            className="h-10 min-w-[130px] rounded-[8px] bg-[var(--color-primary)] px-6 text-[18px] font-semibold text-white disabled:opacity-60"
+          >
+            {saving ? "Simpan" : "Lanjut"}
+          </button>
         </div>
-        {/* Safe area spacing for mobile iOS */}
-        <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
     </div>
   );

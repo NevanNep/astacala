@@ -1,213 +1,345 @@
 "use client";
 
-import React from "react";
 import { useRouter } from "next/navigation";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { Navbar } from "../../../components/Navbar";
+import { createClient } from "../../../utils/supabase/client";
 import { Stepper } from "../../../components/Stepper";
+import {
+  ReportDraft,
+  ReportMediaItem,
+  clearReportMediaFiles,
+  coordinateText,
+  getReportMediaItems,
+  truncateText,
+  writeReportSuccessSummary,
+} from "../../../lib/report-flow";
+import { useReportDraftStore } from "../../../lib/report-draft-store";
 
-/* ── Mock review data (would come from form context in production) ── */
-const MOCK_DATA = {
-  lokasi: {
-    koordinat: "-6.9175, 107.6191",
-    kecamatan: "Coblong, Bandung",
-    alamat: "Jl. Ganesha No.10, Lb. Siliwangi, Kecamatan Coblong",
-  },
-  kondisi: {
-    jenis: "Banjir",
-    keparahan: "Parah",
-    terdampak: "±150 jiwa · 12 korban luka",
-    kebutuhan: "Logistik, Tenda, Obat, Medis",
-    deskripsi: "Tinggi air mencapai 2 meter, sejumlah rumah terendam dan akses jalan terputus.",
-  },
-  media: {
-    fotoCount: 3,
-  },
-};
-
-/* ── Reusable Review Card ── */
 function ReviewCard({
   title,
   editHref,
   rows,
-  router,
+  onEdit,
 }: {
   title: string;
   editHref: string;
-  rows: { label: string; value: React.ReactNode }[];
-  router: ReturnType<typeof useRouter>;
+  rows: { label: string; value: ReactNode }[];
+  onEdit: (href: string) => void;
 }) {
   return (
-    <div className="border border-[var(--color-border)] rounded-[12px] overflow-hidden mb-4">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[var(--color-bg-muted)]">
-        <span className="text-[14px] font-medium text-[var(--color-text-primary)]">
-          {title}
-        </span>
+    <section className="overflow-hidden rounded-[8px] border border-[#8E8E8E] bg-white">
+      <div className="flex items-center justify-between px-3 py-2">
+        <h2 className="text-[18px] font-semibold text-[var(--color-text-primary)]">{title}</h2>
         <button
           type="button"
-          onClick={() => router.push(editHref)}
-          className="text-[12px] font-medium text-[var(--color-primary)]"
+          onClick={() => onEdit(editHref)}
+          className="text-[16px] font-semibold text-[var(--color-primary)]"
         >
-          Edit ›
+          Edit &gt;
         </button>
       </div>
-
-      {/* Body */}
-      <div className="px-4 py-3 space-y-2.5">
-        {rows.map((row, i) => (
-          <div key={i} className="flex justify-between gap-4 items-start">
-            <span className="text-[12px] text-[var(--color-text-tertiary)] shrink-0">
-              {row.label}
-            </span>
-            <span className="text-[13px] text-[var(--color-text-primary)] text-right truncate">
-              {row.value}
-            </span>
-          </div>
-        ))}
+      <div className="rounded-t-[8px] border-t border-[#8E8E8E] px-3 py-3">
+        <div className="space-y-2">
+          {rows.map((row) => (
+            <div key={row.label} className="grid grid-cols-[104px_1fr] gap-4 text-[12px] leading-tight">
+              <span className="text-[var(--color-text-secondary)]">{row.label}</span>
+              <span className="font-semibold text-[var(--color-text-primary)]">{row.value}</span>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </section>
   );
+}
+
+function safeFileName(fileName: string) {
+  const sanitized = fileName
+    .trim()
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-");
+
+  return sanitized || "media";
+}
+
+async function uploadReportMedia(media: ReportMediaItem[]) {
+  if (media.length === 0) return [];
+
+  const supabase = createClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("Pengguna belum terautentikasi.");
+  }
+
+  const paths: string[] = [];
+
+  for (const [index, item] of media.entries()) {
+    const storagePath = `${user.id}/${Date.now()}-${index}-${safeFileName(item.name)}`;
+    const { error } = await supabase.storage.from("laporan-media").upload(storagePath, item.file, {
+      contentType: item.type || undefined,
+      upsert: false,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    paths.push(storagePath);
+  }
+
+  return paths;
 }
 
 export default function Step3ReviewPage() {
   const router = useRouter();
+  const draft = useReportDraftStore((state) => state.draft);
+  const clearDraft = useReportDraftStore((state) => state.clearDraft);
+  const [media, setMedia] = useState<ReportMediaItem[]>([]);
+  const [loadingMedia, setLoadingMedia] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleKirim = () => {
-    // In production this would submit to an API
-    router.push("/report/success");
-  };
+  const previews = useMemo(
+    () =>
+      media.map((item) => ({
+        id: item.id,
+        name: item.name,
+        url: URL.createObjectURL(item.file),
+      })),
+    [media]
+  );
+
+  useEffect(() => {
+    return () => {
+      previews.forEach((preview) => URL.revokeObjectURL(preview.url));
+    };
+  }, [previews]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadReviewMedia() {
+      try {
+        const mediaData = await getReportMediaItems();
+        if (!mounted) return;
+        setMedia(mediaData);
+      } catch (err) {
+        if (mounted) {
+          setError(err instanceof Error ? err.message : "Gagal memuat media laporan.");
+        }
+      } finally {
+        if (mounted) setLoadingMedia(false);
+      }
+    }
+
+    loadReviewMedia();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  function validateDraft(current: ReportDraft) {
+    if (current.latitude === null || current.longitude === null) return "Lokasi pada peta wajib dipilih.";
+    if (!current.alamat.trim()) return "Alamat lengkap wajib diisi.";
+    if (!current.jenis_bencana) return "Jenis bencana wajib diisi.";
+    if (!current.keparahan) return "Tingkat keparahan wajib diisi.";
+    if (current.deskripsi.trim().length < 30) return "Deskripsi kondisi minimal 30 karakter.";
+    return null;
+  }
+
+  async function handleKirim() {
+    const validationError = validateDraft(draft);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const mediaPaths = await uploadReportMedia(media);
+      const response = await fetch("/api/laporan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          judul: `${draft.jenis_bencana} - ${truncateText(draft.alamat, 44)}`,
+          latitude: draft.latitude,
+          longitude: draft.longitude,
+          alamat: draft.alamat.trim(),
+          detail: draft.detail.trim(),
+          jenis_bencana: draft.jenis_bencana,
+          keparahan: draft.keparahan,
+          deskripsi: draft.deskripsi.trim(),
+          kebutuhan: draft.kebutuhan,
+          media_paths: mediaPaths,
+        }),
+      });
+      const data: unknown = await response.json();
+
+      if (!response.ok) {
+        const apiError =
+          data && typeof data === "object" && "error" in data
+            ? String((data as { error?: unknown }).error ?? "")
+            : "";
+        throw new Error(apiError || "Gagal mengirim laporan.");
+      }
+
+      const id =
+        data && typeof data === "object" && "id" in data ? String((data as { id?: unknown }).id ?? "") : "";
+      const status =
+        data && typeof data === "object" && "status" in data
+          ? String((data as { status?: unknown }).status ?? "Pending")
+          : "Pending";
+      const mediaCount =
+        data && typeof data === "object" && "media_count" in data
+          ? Number((data as { media_count?: unknown }).media_count ?? media.length)
+          : media.length;
+
+      await clearReportMediaFiles();
+      clearDraft();
+      writeReportSuccessSummary({
+        id,
+        status,
+        media_count: Number.isFinite(mediaCount) ? mediaCount : media.length,
+        jenis_bencana: draft.jenis_bencana,
+        alamat: draft.alamat,
+        created_at: new Date().toISOString(),
+      });
+      router.push("/report/success");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal mengirim laporan.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const needs = draft.kebutuhan.length ? draft.kebutuhan.join(", ") : "-";
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      {/* Navbar */}
+    <div className="min-h-screen bg-white">
       <Navbar
         variant="flow"
-        showBack={true}
+        showBack
         title="Buat Laporan"
-        rightElement={
-          <span className="text-[16px] font-medium text-[var(--color-text-primary)]">
-            3/3
-          </span>
-        }
+        rightElement={<span className="text-[20px] font-semibold text-[var(--color-text-primary)]">3/3</span>}
       />
 
-      {/* Stepper */}
-      <div className="w-full border-b border-[var(--color-border)]">
-        <Stepper steps={["Lokasi", "Kondisi", "Kirim"]} currentStep={3} />
-      </div>
-
-      {/* Sub-header info strip */}
-      <div className="w-full bg-[var(--color-bg-muted)] border-b border-[var(--color-border)] py-2.5">
-        <p className="text-[12px] text-center text-[var(--color-text-tertiary)]">
-          Periksa kembali sebelum mengirim laporan
-        </p>
-      </div>
-
-      {/* Scrollable Review Content */}
-      <main className="w-full flex-1 overflow-y-auto px-5 md:px-6 lg:px-8 pt-5 pb-32 max-w-[800px] mx-auto">
-        {/* Section 1 — Lokasi Kejadian */}
-        <ReviewCard
-          title="Lokasi Kejadian"
-          editHref="/report/step1"
-          router={router}
-          rows={[
-            { label: "Koordinat", value: MOCK_DATA.lokasi.koordinat },
-            { label: "Kecamatan", value: MOCK_DATA.lokasi.kecamatan },
-            { label: "Alamat", value: MOCK_DATA.lokasi.alamat },
-          ]}
-        />
-
-        {/* Section 2 — Kondisi Bencana */}
-        <ReviewCard
-          title="Kondisi Bencana"
-          editHref="/report/step2"
-          router={router}
-          rows={[
-            { label: "Jenis", value: MOCK_DATA.kondisi.jenis },
-            { label: "Keparahan", value: MOCK_DATA.kondisi.keparahan },
-            { label: "Terdampak", value: MOCK_DATA.kondisi.terdampak },
-            { label: "Kebutuhan", value: MOCK_DATA.kondisi.kebutuhan },
-            { label: "Deskripsi", value: MOCK_DATA.kondisi.deskripsi },
-          ]}
-        />
-
-        {/* Section 3 — Media Bukti */}
-        <div className="border border-[var(--color-border)] rounded-[12px] overflow-hidden mb-4">
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-2.5 bg-[var(--color-bg-muted)]">
-            <span className="text-[14px] font-medium text-[var(--color-text-primary)]">
-              Media Bukti
-            </span>
-            <button
-              type="button"
-              onClick={() => router.push("/report/step2")}
-              className="text-[12px] font-medium text-[var(--color-primary)]"
-            >
-              Edit ›
-            </button>
-          </div>
-
-          {/* Body */}
-          <div className="px-4 py-3">
-            <div className="flex justify-between items-center gap-4">
-              <span className="text-[12px] text-[var(--color-text-tertiary)] shrink-0">
-                Foto
-              </span>
-              <div className="flex items-center gap-2">
-                {/* Thumbnail placeholders */}
-                {Array.from({ length: MOCK_DATA.media.fotoCount }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-10 h-10 rounded-[var(--radius-sm)]"
-                    style={{
-                      background:
-                        i % 2 === 0
-                          ? "linear-gradient(135deg, #90A4AE, #607D8B)"
-                          : "linear-gradient(135deg, #78909C, #546E7A)",
-                    }}
-                  />
-                ))}
-                {/* Count chip */}
-                <span className="text-[12px] text-[var(--color-text-secondary)] bg-[var(--color-bg-muted)] px-2.5 py-1 rounded-[var(--radius-sm)]">
-                  {MOCK_DATA.media.fotoCount} Foto
-                </span>
-              </div>
-            </div>
-          </div>
+      <div className="border-b border-[#8E8E8E]">
+        <div className="mx-auto w-full max-w-[860px] px-4 md:px-8">
+          <Stepper steps={["Lokasi", "Kondisi", "Kirim"]} currentStep={3} />
         </div>
+      </div>
 
-        {/* Disclaimer Box */}
-        <div className="bg-[var(--color-success-light)] rounded-[12px] p-4 flex gap-3 items-start mt-2">
-          <span className="text-[16px] text-[var(--color-success)] shrink-0 mt-0.5">✓</span>
-          <p className="text-[13px] text-[var(--color-success)] leading-relaxed">
-            Dengan mengirim laporan ini, saya menyatakan bahwa informasi yang
-            diberikan adalah benar dan dapat dipertanggungjawabkan.
+      <div className="border-b border-[#8E8E8E] bg-[#EFEFEF] shadow-[0_2px_5px_rgba(0,0,0,0.25)]">
+        <div className="mx-auto w-full max-w-[860px] px-4 py-3 md:px-8">
+          <p className="text-center text-[16px] font-medium text-[var(--color-text-secondary)]">
+            Periksa kembali sebelum mengirim laporan
           </p>
         </div>
+      </div>
+
+      <main className="mx-auto w-full max-w-[860px] px-7 pb-36 pt-4 md:px-8">
+        {error && (
+          <div className="mb-4 rounded-[8px] border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-[var(--color-primary)]">
+            {error}
+          </div>
+        )}
+
+        {loadingMedia ? (
+          <div className="rounded-[8px] border border-[#8E8E8E] px-4 py-8 text-center text-[13px] text-[var(--color-text-secondary)]">
+            Memuat ringkasan laporan...
+          </div>
+        ) : (
+          <>
+            <div className="space-y-3">
+              <ReviewCard
+                title="Lokasi Kejadian"
+                editHref="/report/step1"
+                onEdit={(href) => router.push(href)}
+                rows={[
+                  { label: "Koordinat", value: coordinateText(draft.latitude, draft.longitude) },
+                  { label: "Alamat", value: truncateText(draft.alamat, 28) },
+                  { label: "Detail", value: truncateText(draft.detail, 28) },
+                ]}
+              />
+
+              <ReviewCard
+                title="Kondisi Bencana"
+                editHref="/report/step2"
+                onEdit={(href) => router.push(href)}
+                rows={[
+                  { label: "Jenis", value: draft.jenis_bencana || "-" },
+                  { label: "Keparahan", value: draft.keparahan || "-" },
+                  { label: "Kebutuhan", value: truncateText(needs, 28) },
+                  { label: "Deskripsi", value: truncateText(draft.deskripsi, 28) },
+                ]}
+              />
+
+              <section className="overflow-hidden rounded-[8px] border border-[#8E8E8E] bg-white">
+                <div className="flex items-center justify-between px-3 py-2">
+                  <h2 className="text-[18px] font-semibold text-[var(--color-text-primary)]">Media Bukti</h2>
+                  <button
+                    type="button"
+                    onClick={() => router.push("/report/step2")}
+                    className="text-[16px] font-semibold text-[var(--color-primary)]"
+                  >
+                    Edit &gt;
+                  </button>
+                </div>
+                <div className="rounded-t-[8px] border-t border-[#8E8E8E] px-3 py-3">
+                  <div className="grid grid-cols-[104px_1fr] gap-4">
+                    <span className="text-[12px] text-[var(--color-text-secondary)]">Foto</span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {previews.slice(0, 6).map((preview) => (
+                        <span
+                          key={preview.id}
+                          className="h-[42px] w-[44px] rounded-[6px] bg-cover bg-center md:h-14 md:w-14"
+                          style={{ backgroundImage: `url("${preview.url}")` }}
+                          role="img"
+                          aria-label={preview.name}
+                        />
+                      ))}
+                      <span className="rounded-[6px] bg-[#D9D9D9] px-2 py-3 text-[12px] font-medium text-[var(--color-text-secondary)]">
+                        {media.length} Foto
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div className="mt-3 rounded-[8px] bg-[#C9DDC9] px-4 py-4 text-[14px] font-semibold leading-tight text-[var(--color-success)]">
+              Dengan mengirim laporan ini, saya menyatakan bahwa informasi yang diberikan adalah benar dan dapat
+              dipertanggungjawabkan.
+            </div>
+          </>
+        )}
       </main>
 
-      {/* Fixed Bottom Button Row */}
-      <div className="fixed bottom-0 left-0 w-full bg-white border-t border-[var(--color-border)] px-5 py-4 z-50">
-        <div className="max-w-[800px] mx-auto flex gap-3">
-          <div className="flex-1">
-            <button
-              className="w-full py-3 px-4 rounded-[16px] border border-[var(--color-border)] text-[14px] font-medium text-[var(--color-text-secondary)] bg-white active:bg-gray-50 transition-colors"
-              onClick={() => router.push("/report/step2")}
-            >
-              ← Kembali
-            </button>
-          </div>
-          <div className="flex-[2]">
-            <button
-              className="w-full py-3 px-4 rounded-[16px] bg-[var(--color-primary)] text-[14px] font-medium text-white active:opacity-90 transition-colors"
-              onClick={handleKirim}
-            >
-              Kirim Laporan ✓
-            </button>
-          </div>
+      <div className="fixed bottom-0 left-0 z-50 w-full border-t border-[var(--color-border)] bg-white py-6">
+        <div className="mx-auto flex w-full max-w-[860px] items-center justify-between gap-5 px-7 md:px-8">
+          <button
+            type="button"
+            onClick={() => router.push("/report/step2")}
+            disabled={submitting}
+            className="h-10 min-w-[132px] rounded-[8px] border border-[#8E8E8E] bg-white px-4 text-[18px] font-semibold text-[var(--color-text-primary)] disabled:opacity-60"
+          >
+            Kembali
+          </button>
+          <button
+            type="button"
+            onClick={handleKirim}
+            disabled={submitting || loadingMedia}
+            className="h-10 min-w-[130px] rounded-[8px] bg-[var(--color-primary)] px-6 text-[18px] font-semibold text-white disabled:opacity-60"
+          >
+            {submitting ? "Mengirim" : "Kirim"}
+          </button>
         </div>
-        {/* Safe area spacing for mobile iOS */}
-        <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
     </div>
   );

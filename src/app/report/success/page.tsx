@@ -1,139 +1,77 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Navbar } from "../../../components/Navbar";
-import { Button } from "../../../components/Button";
-
-const INFO_ROWS = [
-  { label: "Nomor Laporan", value: "#LPR-2026-001" },
-  { label: "Jenis Bencana", value: "Banjir" },
-  { label: "Lokasi", value: "Kec. Dayeuhkolot" },
-  { label: "Waktu Kirim", value: "10/04/2026 · 09:41" },
-  { label: "Status", value: "Menunggu Verifikasi" },
-];
+import { formatDateTime, readReportSuccessSummary, ReportSuccessSummary, truncateText } from "../../../lib/report-flow";
 
 export default function ReportSuccessPage() {
   const router = useRouter();
+  const [summary] = useState<ReportSuccessSummary | null>(() => readReportSuccessSummary());
+
+  const rows = [
+    { label: "Nomor Laporan", value: summary?.id || "Tersimpan di riwayat laporan" },
+    { label: "Jenis Bencana", value: summary?.jenis_bencana || "-" },
+    { label: "Lokasi", value: truncateText(summary?.alamat, 30) },
+    { label: "Waktu Kirim", value: formatDateTime(summary?.created_at) },
+    { label: "Status", value: summary?.status || "Menunggu Verifikasi" },
+  ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen bg-white">
       <Navbar variant="flow" showBack={false} />
 
-      <main className="w-full flex-1 flex flex-col justify-center max-w-200 mx-auto px-5 md:px-6 lg:px-8 py-10">
-
-        <div className="w-full flex flex-col gap-6">
-
-          {/* Success Icon */}
-          <div className="flex justify-center">
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: "var(--color-success)" }}
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-              >
-                <path
-                  d="M5 12L9.5 16.5L19 7"
-                  stroke="white"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
+      <main className="mx-auto flex min-h-[calc(100vh-58px)] w-full max-w-[860px] flex-col justify-center px-8 py-10">
+        <div className="mx-auto flex w-full max-w-[720px] flex-col items-center gap-6">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[var(--color-success)]">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M5 12.5L9.2 16.7L19 7.3"
+                stroke="white"
+                strokeWidth="2.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
 
-          {/* Title */}
-          <div className="flex flex-col items-center gap-2 text-center">
-            <h1
-              className="font-medium"
-              style={{
-                fontSize: "var(--text-title)",
-                color: "var(--color-text-primary)",
-              }}
-            >
-              Laporan Terkirim
-            </h1>
-            <p
-              className="leading-relaxed"
-              style={{
-                fontSize: "var(--text-caption)",
-                color: "var(--color-text-tertiary)",
-              }}
-            >
-              Laporan bencana kamu telah berhasil dikirim dan sedang dalam
-              proses verifikasi.
+          <div className="text-center">
+            <h1 className="text-[24px] font-semibold text-[var(--color-text-primary)]">Laporan Terkirim</h1>
+            <p className="mt-2 text-[14px] leading-relaxed text-[var(--color-text-secondary)]">
+              Laporan bencana kamu telah berhasil dikirim dan sedang dalam proses verifikasi.
             </p>
           </div>
 
-          {/* Info Card */}
-          <div
-            className="w-full rounded-lg p-4"
-            style={{
-              backgroundColor: "#fff",
-              border: "1px solid var(--color-border)",
-            }}
-          >
-            {INFO_ROWS.map((row, i) => (
+          <section className="w-full rounded-[8px] border border-[#8E8E8E] bg-white px-4 py-2">
+            {rows.map((row, index) => (
               <div
                 key={row.label}
-                className="flex justify-between items-start py-2"
-                style={
-                  i < INFO_ROWS.length - 1
-                    ? { borderBottom: "1px solid var(--color-border)" }
-                    : {}
-                }
+                className={`flex items-start justify-between gap-4 py-2 text-[12px] ${
+                  index < rows.length - 1 ? "border-b border-[var(--color-border)]" : ""
+                }`}
               >
-                <span
-                  style={{
-                    fontSize: "var(--text-caption)",
-                    color: "var(--color-text-tertiary)",
-                  }}
-                >
-                  {row.label}
-                </span>
-                <span
-                  className="font-medium text-right"
-                  style={{
-                    fontSize: "var(--text-caption)",
-                    color: "var(--color-primary)",
-                  }}
-                >
+                <span className="text-[var(--color-text-secondary)]">{row.label}</span>
+                <span className="max-w-[300px] text-right font-semibold text-[var(--color-primary)]">
                   {row.value}
                 </span>
               </div>
             ))}
-          </div>
+          </section>
 
-          {/* Info Note */}
-          <div
-            className="w-full rounded-lg p-4"
-            style={{ backgroundColor: "var(--color-secondary-light)" }}
-          >
-            <p
-              className="leading-relaxed"
-              style={{
-                fontSize: "var(--text-caption)",
-                color: "var(--color-secondary)",
-              }}
-            >
-              Kamu akan mendapat notifikasi saat laporan diterima atau ditolak
-              oleh pusat kendali. Pantau status di halaman Riwayat Laporan.
+          <div className="w-full rounded-[8px] bg-[var(--color-secondary-light)] px-4 py-3">
+            <p className="text-[13px] leading-relaxed text-[var(--color-secondary)]">
+              Kamu akan mendapat notifikasi saat laporan diterima atau ditolak oleh pusat kendali. Pantau status di
+              halaman Riwayat Laporan.
             </p>
           </div>
 
-          {/* CTA */}
-          <Button
-            variant="primary"
-            fullWidth
+          <button
+            type="button"
             onClick={() => router.push("/dashboard")}
+            className="h-11 w-full rounded-[8px] bg-[var(--color-primary)] text-[16px] font-semibold text-white"
           >
             Kembali ke Beranda
-          </Button>
-
+          </button>
         </div>
       </main>
     </div>

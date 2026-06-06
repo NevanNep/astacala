@@ -40,7 +40,7 @@ export default function MapPicker({ onLocationSelect, selected }: MapPickerProps
       center={[-6.9175, 107.6191]}
       zoom={13}
       scrollWheelZoom={false}
-      style={{ height: "260px", width: "100%", borderRadius: "16px" }}
+      style={{ height: "clamp(246px, 32vw, 360px)", width: "100%", borderRadius: "8px" }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
