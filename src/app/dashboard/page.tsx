@@ -42,7 +42,6 @@ export default function DashboardPage() {
             <Link href="/report/step1">
               <button 
                 className="w-full bg-white rounded-[20px] p-4 md:p-5 shadow-sm active:scale-[0.98] transition-all flex items-center gap-4 text-left group"
-                onClick={() => console.log("Navigate to S08")}
               >
                 <div className="w-[64px] h-[64px] bg-[#B22222] rounded-[16px] shrink-0 flex items-center justify-center text-black/80 group-hover:bg-[#A01D1D] transition-colors">
                   {/* Custom Plus Icon to match Figma */}

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button } from "../../../components/Button";
+import Link from "next/link";
 
 export default function CheckEmailPage() {
   // Hardcoded for demonstration as per specs
@@ -43,18 +43,21 @@ export default function CheckEmailPage() {
             </div>
 
             <div className="pt-2">
-              <Button variant="primary" fullWidth className="mt-6">
-                 Kirim ulang email
-              </Button>
+              <Link
+                href="/forgot-password"
+                className="mt-6 w-full flex items-center justify-center text-center transition-colors bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] active:bg-[var(--color-primary-dark)] text-white py-[8px] px-[12px] rounded-[var(--radius-lg)] text-[var(--text-label)] font-medium"
+              >
+                Kirim ulang email
+              </Link>
             </div>
 
             <div className="mt-6 flex flex-col items-center gap-4">
-              <button 
-                type="button" 
+              <Link
+                href="/login"
                 className="text-[var(--text-nano)] font-medium text-[var(--color-primary)] hover:underline"
               >
                 Kembali ke Login
-              </button>
+              </Link>
             </div>
           </div>
         </div>

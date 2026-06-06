@@ -6,6 +6,14 @@ import { useRouter } from "next/navigation";
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
 
+interface ApiErrorResponse {
+  error?: string;
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unknown";
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const [nama, setNama] = useState("");
@@ -31,14 +39,14 @@ export default function RegisterPage() {
         router.push("/dashboard");
         router.refresh();
       } else {
-        const data = await res.json();
+        const data = (await res.json()) as ApiErrorResponse;
         const errorMsg = data.error ?? "Registrasi gagal. Coba lagi.";
         setError(errorMsg);
         alert("Register Error: " + errorMsg);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError("Terjadi kesalahan. Coba lagi.");
-      alert("Network or Server Error: " + (err?.message || "Unknown"));
+      alert("Network or Server Error: " + getErrorMessage(err));
     } finally {
       setLoading(false);
     }

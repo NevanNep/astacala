@@ -7,6 +7,20 @@ import Link from "next/link";
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
 
+type PostLoginRoute = "/admin/dashboard" | "/dashboard";
+
+interface LoginSuccessResponse {
+  redirectTo?: PostLoginRoute;
+}
+
+interface ApiErrorResponse {
+  error?: string;
+}
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unknown";
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -18,7 +32,6 @@ export default function LoginPage() {
     if (e) e.preventDefault();
     setError("");
     setLoading(true);
-    console.log("Submitting login with:", email);
 
     try {
       const res = await fetch("/api/login", {
@@ -27,24 +40,21 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      console.log("Login response status:", res.status);
-
       if (res.ok) {
-        console.log("Login successful, redirecting...");
-        router.push("/dashboard");
+        const data = (await res.json()) as LoginSuccessResponse;
+        router.push(data.redirectTo ?? "/dashboard");
         router.refresh();
-        return; // Early return to prevent state update after navigation starts
+        return;
       } else {
-        const data = await res.json();
+        const data = (await res.json()) as ApiErrorResponse;
         const errorMsg = data.error ?? "Login gagal. Coba lagi.";
-        console.error("Login failed:", errorMsg);
         setError(errorMsg);
         alert("Login Error: " + errorMsg);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Fetch error:", err);
       setError("Terjadi kesalahan. Coba lagi.");
-      alert("Network or Server Error: " + (err?.message || "Unknown"));
+      alert("Network or Server Error: " + getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -117,7 +127,7 @@ export default function LoginPage() {
               </div>
 
               <div className="pt-2">
-                <Button type="submit" onClick={handleSubmit} variant="primary" fullWidth className="mt-6" disabled={loading}>
+                <Button type="submit" variant="primary" fullWidth className="mt-6" disabled={loading}>
                   {loading ? "Loading..." : "Login"}
                 </Button>
               </div>
