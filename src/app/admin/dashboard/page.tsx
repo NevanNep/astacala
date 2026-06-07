@@ -350,7 +350,7 @@ export default async function AdminDashboardPage() {
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-[28px] font-bold leading-none tracking-[0]">Menunggu Verifikasi</h2>
             <Link
-              href="#menunggu-verifikasi"
+              href="/admin/laporan"
               className="text-[18px] font-bold text-[#CC2028] hover:underline"
             >
               Lihat semua →
@@ -384,8 +384,7 @@ export default async function AdminDashboardPage() {
                   </p>
 
                   <Link
-                    href={`#report-${report.id}`}
-                    id={`report-${report.id}`}
+                    href={`/admin/laporan/${encodeURIComponent(report.id)}`}
                     className="mt-6 flex h-[48px] w-full items-center justify-center rounded-full bg-[#D4282E] text-[15px] font-bold text-white transition-colors hover:bg-[#B71C1C]"
                   >
                     Verifikasi
