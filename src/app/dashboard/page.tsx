@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Navbar } from "../../components/Navbar";
 import { AlertBanner } from "../../components/AlertBanner";
 import { SectionHeader } from "../../components/SectionHeader";
@@ -11,7 +11,59 @@ import { NewsCard } from "../../components/NewsCard";
 import { Footer } from "../../components/Footer";
 import Link from "next/link";
 
+interface DashboardMission {
+  id: string;
+  judul: string;
+  lokasi: string;
+  tanggal_mulai: string | null;
+  kuota: number;
+  status: "Terbuka" | "Penuh" | "Selesai";
+  registration_count: number;
+}
+
+function formatMissionDate(dateStr: string | null): string {
+  if (!dateStr) return "-";
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return dateStr;
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
 export default function DashboardPage() {
+  const [missions, setMissions] = useState<DashboardMission[]>([]);
+  const [missionsLoading, setMissionsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadMissions = async () => {
+      try {
+        const res = await fetch("/api/misi");
+        if (!res.ok) return;
+        const data: { missions?: DashboardMission[] } = await res.json();
+        if (!cancelled) {
+          setMissions(data.missions ?? []);
+        }
+      } catch {
+        if (!cancelled) {
+          setMissions([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setMissionsLoading(false);
+        }
+      }
+    };
+
+    loadMissions();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const dashboardMissions = missions
+    .filter((mission) => mission.status !== "Selesai")
+    .slice(0, 2);
+
   return (
     <div className="min-h-screen flex flex-col bg-[var(--color-bg-default)]">
       <Navbar variant="authenticated" />
@@ -110,25 +162,38 @@ export default function DashboardPage() {
               <SectionHeader 
                 title="Misi Aktif" 
                 actionText="Semua" 
-                onAction={() => console.log("Semua Misi")} 
+                href="/misi" 
               />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-4 md:mt-6">
-                <MissionCard 
-                  title="Operasi Banjir"
-                  location="Kec. Dayeuhkolot"
-                  status="terbuka"
-                  startDate="10/04/2026"
-                  volunteers="12/15"
-                  onAction={() => console.log("Daftar")}
-                />
-                <MissionCard 
-                  title="Operasi Banjir"
-                  location="Kec. Dayeuhkolot"
-                  status="penuh"
-                  startDate="10/04/2026"
-                  volunteers="15/15"
-                  onAction={() => console.log("Penuh")}
-                />
+                {missionsLoading ? (
+                  [1, 2].map((item) => (
+                    <div
+                      key={item}
+                      className="h-[174px] rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white p-5 shadow-md animate-pulse"
+                    >
+                      <div className="h-4 w-32 rounded bg-gray-200" />
+                      <div className="mt-3 h-3 w-24 rounded bg-gray-100" />
+                      <div className="mt-8 h-3 w-28 rounded bg-gray-100" />
+                      <div className="mt-3 h-8 w-20 rounded bg-gray-200 ml-auto" />
+                    </div>
+                  ))
+                ) : dashboardMissions.length > 0 ? (
+                  dashboardMissions.map((mission) => (
+                    <MissionCard
+                      key={mission.id}
+                      title={mission.judul}
+                      location={mission.lokasi}
+                      status={mission.status === "Penuh" ? "penuh" : "terbuka"}
+                      startDate={formatMissionDate(mission.tanggal_mulai)}
+                      volunteers={`${mission.registration_count}/${mission.kuota}`}
+                      actionHref={`/misi/${mission.id}`}
+                    />
+                  ))
+                ) : (
+                  <div className="md:col-span-2 rounded-[var(--radius-lg)] border border-[var(--color-border)] bg-white p-6 text-center text-[13px] text-[var(--color-text-secondary)]">
+                    Belum ada misi aktif saat ini.
+                  </div>
+                )}
               </div>
             </div>
           </section>

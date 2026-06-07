@@ -7,12 +7,34 @@ interface NavbarProps {
   variant?: "public" | "authenticated" | "flow";
   title?: string;
   showBack?: boolean;
+  backHref?: string;
+  showMenu?: boolean;
   rightElement?: React.ReactNode;
+  containerClassName?: string;
 }
 
-export function Navbar({ variant = "public", title, showBack, rightElement }: NavbarProps) {
+export function Navbar({
+  variant = "public",
+  title,
+  showBack,
+  backHref,
+  showMenu,
+  rightElement,
+  containerClassName,
+}: NavbarProps) {
   const isFlow = variant === "flow";
   const router = useRouter();
+  const defaultContainerClassName = isFlow
+    ? "max-w-[860px]"
+    : "max-w-[1200px] lg:px-12";
+  const shouldShowMenu = showMenu ?? variant !== "flow";
+  const handleBack = () => {
+    if (backHref) {
+      router.push(backHref);
+      return;
+    }
+    router.back();
+  };
 
   return (
     <div
@@ -22,12 +44,12 @@ export function Navbar({ variant = "public", title, showBack, rightElement }: Na
     >
       <div
         className={`mx-auto flex w-full items-center justify-between px-4 md:px-8 ${
-          isFlow ? "max-w-[860px]" : "max-w-[1200px] lg:px-12"
+          containerClassName ?? defaultContainerClassName
         }`}
       >
         <div className="flex items-center gap-1">
           {showBack ? (
-            <button type="button" onClick={() => router.back()} className="flex items-center gap-1">
+            <button type="button" onClick={handleBack} className="flex items-center gap-1">
               <span className="text-[22px] leading-none text-[var(--color-text-primary)]">&lsaquo;</span>
               <span
                 className={
@@ -58,7 +80,7 @@ export function Navbar({ variant = "public", title, showBack, rightElement }: Na
         <div className="flex items-center gap-3">
           {rightElement}
 
-          {variant !== "flow" && (
+          {shouldShowMenu && (
             <div className="flex h-[10px] w-[14px] flex-col justify-between">
               <div className="h-[1.5px] w-full bg-[var(--color-text-primary)]" />
               <div className="h-[1.5px] w-[10px] bg-[var(--color-text-primary)]" />

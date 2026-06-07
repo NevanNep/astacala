@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Badge } from "./Badge";
 import { Button } from "./Button";
 
@@ -8,6 +9,7 @@ export interface MissionCardProps {
   status: "terbuka" | "penuh";
   startDate: string;
   volunteers: string;
+  actionHref?: string;
   onAction?: () => void;
 }
 
@@ -17,6 +19,7 @@ export function MissionCard({
   status,
   startDate,
   volunteers,
+  actionHref,
   onAction
 }: MissionCardProps) {
   const isOpen = status === "terbuka";
@@ -48,15 +51,24 @@ export function MissionCard({
         </div>
         
         <div className="w-[80px] md:w-[100px]">
-          <Button 
-            variant="primary" 
-            fullWidth 
-            disabled={!isOpen}
-            onClick={onAction}
-            className={!isOpen ? "opacity-50 cursor-not-allowed" : ""}
-          >
-            {isOpen ? "Daftar" : "Penuh"}
-          </Button>
+          {isOpen && actionHref ? (
+            <Link
+              href={actionHref}
+              className="flex w-full items-center justify-center rounded-[var(--radius-lg)] bg-[var(--color-primary)] px-[12px] py-[8px] text-center text-[var(--text-label)] font-medium text-white transition-colors hover:bg-[var(--color-primary-dark)] active:bg-[var(--color-primary-dark)]"
+            >
+              Daftar
+            </Link>
+          ) : (
+            <Button 
+              variant="primary" 
+              fullWidth 
+              disabled={!isOpen}
+              onClick={onAction}
+              className={!isOpen ? "opacity-50 cursor-not-allowed" : ""}
+            >
+              {isOpen ? "Daftar" : "Penuh"}
+            </Button>
+          )}
         </div>
       </div>
     </div>

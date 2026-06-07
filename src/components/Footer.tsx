@@ -3,7 +3,7 @@ import React from "react";
 export function Footer() {
   return (
     <footer className="bg-[var(--color-secondary)] w-full">
-      <div className="max-w-[1200px] mx-auto py-6 md:py-8 px-4 md:px-6 lg:px-8 flex flex-col gap-6">
+      <div className="max-w-[1200px] mx-auto py-6 md:py-8 px-4 md:px-8 lg:px-12 flex flex-col gap-6">
         <div className="flex items-center gap-3">
           {/* Logo Circle */}
           <div
