@@ -57,10 +57,8 @@ const menuItems: VolunteerMenuItem[] = [
   },
   {
     label: "Berita Bencana",
-    href: "/dashboard#berita",
+    href: "/berita",
     isActive: (pathname) => pathname === "/berita" || pathname.startsWith("/berita/"),
-    // TODO: Replace this dashboard anchor with /berita when the volunteer news page exists.
-    pendingRoute: "/berita",
   },
   {
     label: "Profil",
