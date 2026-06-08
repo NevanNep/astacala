@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/src/utils/supabase/admin";
 import { createClient } from "@/src/utils/supabase/server";
+import { AdminHamburgerMenu } from "@/src/components/AdminHamburgerMenu";
 
 export const dynamic = "force-dynamic";
 
@@ -156,22 +157,7 @@ function AstacalaLogo({ size = 76 }: { size?: number }) {
   );
 }
 
-function MenuIcon() {
-  return (
-    <div className="flex items-center gap-2 text-[#1E1E1E]" aria-hidden="true">
-      <span className="flex flex-col gap-[5px]">
-        <span className="h-[3px] w-[3px] rounded-full bg-current" />
-        <span className="h-[3px] w-[3px] rounded-full bg-current" />
-        <span className="h-[3px] w-[3px] rounded-full bg-current" />
-      </span>
-      <span className="flex flex-col gap-[6px]">
-        <span className="h-[3px] w-9 rounded-full bg-current" />
-        <span className="h-[3px] w-9 rounded-full bg-current" />
-        <span className="h-[3px] w-9 rounded-full bg-current" />
-      </span>
-    </div>
-  );
-}
+
 
 function StatCard({
   label,
@@ -289,13 +275,7 @@ export default async function AdminDashboardPage() {
               ASTACALA
             </span>
           </Link>
-          <Link
-            href="/dashboard"
-            className="rounded-full p-3 transition-colors hover:bg-[#F2F2F2]"
-            aria-label="Buka dashboard relawan"
-          >
-            <MenuIcon />
-          </Link>
+          <AdminHamburgerMenu />
         </div>
       </header>
 

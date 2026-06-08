@@ -6,6 +6,7 @@ import {
   missionTitle,
   normalizeMissionStatus,
 } from "./types";
+import { AdminHamburgerMenu } from "@/src/components/AdminHamburgerMenu";
 
 export function formatMissionDate(value: string | null | undefined) {
   if (!value) return "-";
@@ -123,7 +124,10 @@ export function AdminMissionTopBar({
                 ) : null}
               </div>
             </div>
-            {action ? <div className="shrink-0 pt-1">{action}</div> : null}
+            <div className="flex shrink-0 items-center gap-2 pt-1">
+              {action}
+              <AdminHamburgerMenu />
+            </div>
           </div>
         </div>
       </div>

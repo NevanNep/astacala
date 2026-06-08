@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { AdminReportListItem } from "./types";
 import { getReporterProfile, normalizeReportStatus } from "./types";
+import { AdminHamburgerMenu } from "@/src/components/AdminHamburgerMenu";
 
 export function formatAdminDateTime(value: string | null | undefined) {
   if (!value) return "-";
@@ -80,23 +81,28 @@ export function AdminTopBar({
       </div>
       <div className="bg-white">
         <div className={`${containerClass} pb-10 pt-5 md:pb-12`}>
-          <div className="flex items-start gap-1">
-            <Link
-              href={backHref}
-              className="mt-1 inline-flex h-7 w-5 shrink-0 items-center justify-center text-[30px] leading-none text-[#202124]"
-              aria-label="Kembali"
-            >
-              &lsaquo;
-            </Link>
-            <div className="min-w-0">
-              <h1 className="break-words text-[25px] font-extrabold leading-[1.05] tracking-[0] text-[#202124] md:text-[34px]">
-                {title}
-              </h1>
-              {subtitle ? (
-                <p className="mt-1 break-words text-[14px] font-extrabold leading-none text-[#202124] md:text-[16px]">
-                  {subtitle}
-                </p>
-              ) : null}
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex min-w-0 items-start gap-1">
+              <Link
+                href={backHref}
+                className="mt-1 inline-flex h-7 w-5 shrink-0 items-center justify-center text-[30px] leading-none text-[#202124]"
+                aria-label="Kembali"
+              >
+                &lsaquo;
+              </Link>
+              <div className="min-w-0">
+                <h1 className="break-words text-[25px] font-extrabold leading-[1.05] tracking-[0] text-[#202124] md:text-[34px]">
+                  {title}
+                </h1>
+                {subtitle ? (
+                  <p className="mt-1 break-words text-[14px] font-extrabold leading-none text-[#202124] md:text-[16px]">
+                    {subtitle}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+            <div className="shrink-0 pt-1">
+              <AdminHamburgerMenu />
             </div>
           </div>
         </div>
