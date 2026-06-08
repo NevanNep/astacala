@@ -6,8 +6,6 @@ import { createAdminClient } from "@/src/utils/supabase/admin";
 import { createClient } from "@/src/utils/supabase/server";
 
 const MISSION_STATUSES = ["Terbuka", "Penuh", "Selesai"] as const;
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i;
 
 type MissionStatus = (typeof MISSION_STATUSES)[number];
 type MissionPayload = {
@@ -545,25 +543,15 @@ export async function PATCH_ADMIN_MISSION(
 
     const params = await context.params;
     const { id: routeId } = params;
-    console.log("PATCH mission params:", params);
-    console.log("PATCH mission raw id:", routeId);
     const idResult = requireValidMissionId(routeId);
     if ("error" in idResult) {
-      const normalizedId = String(routeId ?? "").trim();
-      console.log("PATCH mission 400 invalid route id:", {
-        routeId,
-        normalizedId,
-        matchesUuid: UUID_PATTERN.test(normalizedId),
-      });
       return idResult.error;
     }
     const { id } = idResult;
-    console.log("PATCH mission id:", id);
 
     const body = await parseBody(request);
 
     if (!body) {
-      console.log("PATCH mission 400 invalid JSON body");
       return jsonError("Request body must be valid JSON", 400);
     }
 
@@ -573,14 +561,12 @@ export async function PATCH_ADMIN_MISSION(
     );
 
     if (Object.keys(update).length === 0) {
-      console.log("PATCH mission 400 no update fields:", body);
       return jsonError("Tidak ada field misi untuk diperbarui", 400);
     }
 
     const validationError = validateMissionPayload(payload, true);
 
     if (validationError) {
-      console.log("PATCH mission 400 payload validation:", validationError);
       return jsonError(validationError.error, 400, validationError.field);
     }
 

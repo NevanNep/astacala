@@ -402,7 +402,7 @@ export default async function AdminDashboardPage() {
         <section id="misi-aktif" className="mx-auto max-w-[1180px] px-8 pb-10">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-[28px] font-bold leading-none tracking-[0]">Misi Aktif</h2>
-            <Link href="#misi-aktif" className="text-[18px] font-bold text-[#CC2028] hover:underline">
+            <Link href="/admin/misi" className="text-[18px] font-bold text-[#CC2028] hover:underline">
               Kelola →
             </Link>
           </div>
