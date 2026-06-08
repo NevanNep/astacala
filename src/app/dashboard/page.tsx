@@ -132,7 +132,7 @@ export default function DashboardPage() {
             <SectionHeader 
               title="Notifikasi Terbaru" 
               actionText="Semua" 
-              href="/dashboard#notifikasi"
+              href="/notifikasi"
             />
             <div className="flex flex-col mt-2">
               <NotificationItem 

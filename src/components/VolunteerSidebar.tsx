@@ -71,10 +71,8 @@ const menuItems: VolunteerMenuItem[] = [
   },
   {
     label: "Notifikasi",
-    href: "/dashboard#notifikasi",
+    href: "/notifikasi",
     isActive: (pathname) => pathname === "/notifikasi" || pathname.startsWith("/notifikasi/"),
-    // TODO: Replace this dashboard anchor with /notifikasi when the volunteer notifications page exists.
-    pendingRoute: "/notifikasi",
   },
 ];
 
