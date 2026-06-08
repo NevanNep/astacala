@@ -150,6 +150,7 @@ export default function Step2KondisiPage() {
       <Navbar
         variant="flow"
         showBack
+        showMenu
         title="Buat Laporan"
         rightElement={<span className="text-[20px] font-semibold text-[var(--color-text-primary)]">2/3</span>}
       />

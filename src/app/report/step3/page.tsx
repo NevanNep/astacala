@@ -225,6 +225,7 @@ export default function Step3ReviewPage() {
       <Navbar
         variant="flow"
         showBack
+        showMenu
         title="Buat Laporan"
         rightElement={<span className="text-[20px] font-semibold text-[var(--color-text-primary)]">3/3</span>}
       />

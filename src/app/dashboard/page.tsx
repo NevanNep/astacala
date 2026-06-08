@@ -120,7 +120,7 @@ export default function DashboardPage() {
             variant="siaga"
             text="Potensi Banjir di Bandung"
             actionText="Info ›"
-            onAction={() => console.log("Info clicked")}
+            onAction={() => document.getElementById("berita")?.scrollIntoView({ behavior: "smooth" })}
           />
         </div>
 
@@ -128,11 +128,11 @@ export default function DashboardPage() {
         <div className="w-full space-y-6 md:space-y-8 mt-6 md:mt-8">
           
           {/* 3. Notifikasi Terbaru */}
-          <section className="w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8">
+          <section id="notifikasi" className="w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8">
             <SectionHeader 
               title="Notifikasi Terbaru" 
               actionText="Semua" 
-              onAction={() => console.log("Semua Notifikasi")} 
+              href="/dashboard#notifikasi"
             />
             <div className="flex flex-col mt-2">
               <NotificationItem 
@@ -201,7 +201,7 @@ export default function DashboardPage() {
           <SectionDivider />
 
           {/* 5. Berita Bencana */}
-          <section className="w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8">
+          <section id="berita" className="w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8">
             <div className="mb-6">
               <SectionHeader title="Berita Bencana Terkini" />
             </div>

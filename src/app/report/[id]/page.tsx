@@ -9,7 +9,6 @@ import {
   ReportMediaRecord,
   ReportRecord,
   ReportStatus,
-  truncateText,
 } from "../../../lib/report-flow";
 import { createClient } from "../../../utils/supabase/client";
 
@@ -18,6 +17,7 @@ const STATUS_BADGE: Record<ReportStatus, { bg: string; color: string }> = {
   Pending: { bg: "#FFF8E1", color: "#E65100" },
   Ditolak: { bg: "#FFEBEE", color: "#C62828" },
 };
+const DETAIL_CONTAINER = "w-full max-w-[760px] lg:max-w-[860px] mx-auto px-4 md:px-8";
 
 function normalizeStatus(status: string | null | undefined): ReportStatus {
   if (status === "Diterima" || status === "Ditolak" || status === "Pending") return status;
@@ -26,9 +26,11 @@ function normalizeStatus(status: string | null | undefined): ReportStatus {
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[112px_1fr] gap-4 border-b border-[var(--color-border)] py-3 text-[13px] last:border-b-0">
+    <div className="grid grid-cols-[112px_minmax(0,1fr)] gap-4 border-b border-[var(--color-border)] py-3 text-[13px] last:border-b-0 md:grid-cols-[150px_minmax(0,1fr)] md:gap-6 md:py-4 md:text-[14px]">
       <span className="text-[var(--color-text-secondary)]">{label}</span>
-      <span className="font-semibold leading-relaxed text-[var(--color-text-primary)]">{value}</span>
+      <span className="min-w-0 break-words font-semibold leading-relaxed text-[var(--color-text-primary)]">
+        {value}
+      </span>
     </div>
   );
 }
@@ -92,106 +94,115 @@ export default function ReportDetailPage() {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-page)]">
-      <div className="mx-auto min-h-screen max-w-[420px] bg-[var(--color-bg-page)]">
-        <Navbar
-          variant="authenticated"
-          showBack
-          title="Detail Laporan"
-          rightElement={
-            <button
-              type="button"
-              onClick={() => router.push("/report/history")}
-              className="text-[12px] font-semibold text-[var(--color-primary)]"
-            >
-              Riwayat
-            </button>
-          }
-        />
+      <Navbar
+        variant="authenticated"
+        showBack
+        title="Detail Laporan"
+        containerClassName="max-w-[860px]"
+        rightElement={
+          <button
+            type="button"
+            onClick={() => router.push("/report/history")}
+            className="text-[12px] font-semibold text-[var(--color-primary)] md:text-[13px]"
+          >
+            Riwayat
+          </button>
+        }
+      />
 
-        <main className="space-y-4 px-5 pb-24 pt-5">
-          {!id ? (
-            <div className="rounded-[8px] border border-red-200 bg-red-50 px-3 py-3 text-sm text-[var(--color-primary)]">
-              ID laporan tidak valid.
-            </div>
-          ) : loading ? (
-            <div className="rounded-[8px] bg-white py-16 text-center text-sm text-[var(--color-text-tertiary)]">
-              Memuat detail laporan...
-            </div>
-          ) : error ? (
-            <div className="rounded-[8px] border border-red-200 bg-red-50 px-3 py-3 text-sm text-[var(--color-primary)]">
-              {error}
-            </div>
-          ) : report ? (
-            <>
-              <section className="rounded-[8px] border border-[var(--color-border)] bg-white p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-mono text-[12px] text-[var(--color-text-tertiary)]">{report.id}</p>
-                    <h1 className="mt-1 text-[20px] font-semibold leading-snug text-[var(--color-text-primary)]">
-                      {report.judul || `${report.jenis_bencana ?? "Laporan"} Bencana`}
-                    </h1>
-                    <p className="mt-1 text-[13px] text-[var(--color-text-secondary)]">
-                      {truncateText(report.alamat, 58)}
-                    </p>
-                  </div>
-                  <span
-                    className="rounded-full px-3 py-1 text-xs font-semibold"
-                    style={{ backgroundColor: STATUS_BADGE[status].bg, color: STATUS_BADGE[status].color }}
-                  >
-                    {status}
-                  </span>
+      <main className={`${DETAIL_CONTAINER} space-y-4 pb-24 pt-5 md:space-y-5 md:pt-8`}>
+        {!id ? (
+          <div className="rounded-[8px] border border-red-200 bg-red-50 px-4 py-4 text-sm text-[var(--color-primary)]">
+            ID laporan tidak valid.
+          </div>
+        ) : loading ? (
+          <div className="rounded-[8px] bg-white py-16 text-center text-sm text-[var(--color-text-tertiary)]">
+            Memuat detail laporan...
+          </div>
+        ) : error ? (
+          <div className="rounded-[8px] border border-red-200 bg-red-50 px-4 py-4 text-sm text-[var(--color-primary)]">
+            {error}
+          </div>
+        ) : report ? (
+          <>
+            <section className="rounded-[8px] border border-[var(--color-border)] bg-white p-4 md:p-6">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-mono text-[12px] text-[var(--color-text-tertiary)]">{report.id}</p>
+                  <h1 className="mt-1 text-[20px] font-semibold leading-snug text-[var(--color-text-primary)] md:text-[24px]">
+                    {report.judul || `${report.jenis_bencana ?? "Laporan"} Bencana`}
+                  </h1>
+                  <p className="mt-2 break-words text-[13px] leading-relaxed text-[var(--color-text-secondary)] md:text-[14px]">
+                    {report.alamat || "-"}
+                  </p>
                 </div>
-              </section>
+                <span
+                  className="shrink-0 rounded-full px-3 py-1 text-xs font-semibold"
+                  style={{ backgroundColor: STATUS_BADGE[status].bg, color: STATUS_BADGE[status].color }}
+                >
+                  {status}
+                </span>
+              </div>
+            </section>
 
-              <section className="rounded-[8px] border border-[var(--color-border)] bg-white px-4">
-                <DetailRow label="Koordinat" value={coordinateText(report.latitude, report.longitude)} />
-                <DetailRow label="Alamat" value={report.alamat || "-"} />
-                <DetailRow label="Detail Lokasi" value={report.detail || "-"} />
-                <DetailRow label="Jenis" value={report.jenis_bencana || "-"} />
-                <DetailRow label="Keparahan" value={report.keparahan || "-"} />
-                <DetailRow label="Deskripsi" value={report.deskripsi || "-"} />
-                <DetailRow label="Kebutuhan" value={report.kebutuhan?.length ? report.kebutuhan.join(", ") : "-"} />
-                <DetailRow label="Dibuat" value={formatDateTime(report.created_at)} />
-                {status === "Ditolak" && <DetailRow label="Alasan Ditolak" value={rejectionReason || "-"} />}
-              </section>
+            <section className="rounded-[8px] border border-[var(--color-border)] bg-white px-4 md:px-6">
+              <DetailRow label="Koordinat" value={coordinateText(report.latitude, report.longitude)} />
+              <DetailRow label="Alamat" value={report.alamat || "-"} />
+              <DetailRow label="Detail Lokasi" value={report.detail || "-"} />
+              <DetailRow label="Jenis" value={report.jenis_bencana || "-"} />
+              <DetailRow label="Keparahan" value={report.keparahan || "-"} />
+              <DetailRow label="Deskripsi" value={report.deskripsi || "-"} />
+              <DetailRow label="Kebutuhan" value={report.kebutuhan?.length ? report.kebutuhan.join(", ") : "-"} />
+              <DetailRow label="Dibuat" value={formatDateTime(report.created_at)} />
+              {status === "Ditolak" && <DetailRow label="Alasan Ditolak" value={rejectionReason || "-"} />}
+            </section>
 
-              <section className="rounded-[8px] border border-[var(--color-border)] bg-white p-4">
-                <h2 className="text-[16px] font-semibold text-[var(--color-text-primary)]">Media Bukti</h2>
-                {media.length === 0 ? (
-                  <p className="mt-3 text-sm text-[var(--color-text-tertiary)]">Tidak ada media bukti.</p>
-                ) : (
-                  <div className="mt-3 grid grid-cols-3 gap-3">
-                    {media.map((item) => {
-                      const url = mediaUrl(item);
+            <section className="rounded-[8px] border border-[var(--color-border)] bg-white p-4 md:p-6">
+              <h2 className="text-[16px] font-semibold text-[var(--color-text-primary)] md:text-[18px]">
+                Media Bukti
+              </h2>
+              {media.length === 0 ? (
+                <p className="mt-3 text-sm text-[var(--color-text-tertiary)]">Tidak ada media bukti.</p>
+              ) : (
+                <div
+                  className={
+                    media.length === 1
+                      ? "mt-4 grid grid-cols-1"
+                      : "mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4"
+                  }
+                >
+                  {media.map((item) => {
+                    const url = mediaUrl(item);
 
-                      return url ? (
-                        <a
-                          key={`${item.storage_path}-${item.id ?? ""}`}
-                          href={url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="block aspect-square overflow-hidden rounded-[8px] bg-[var(--color-bg-muted)]"
-                        >
-                          <span
-                            className="block h-full w-full bg-cover bg-center"
-                            style={{ backgroundImage: `url("${url}")` }}
-                            role="img"
-                            aria-label="Media bukti laporan"
-                          />
-                        </a>
-                      ) : null;
-                    })}
-                  </div>
-                )}
-              </section>
-            </>
-          ) : (
-            <div className="rounded-[8px] bg-white py-16 text-center text-sm text-[var(--color-text-tertiary)]">
-              Laporan tidak ditemukan.
-            </div>
-          )}
-        </main>
-      </div>
+                    return url ? (
+                      <a
+                        key={`${item.storage_path}-${item.id ?? ""}`}
+                        href={url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={`block overflow-hidden rounded-[8px] bg-[var(--color-bg-muted)] ${
+                          media.length === 1 ? "aspect-[4/3]" : "aspect-square"
+                        }`}
+                      >
+                        <span
+                          className="block h-full w-full bg-cover bg-center"
+                          style={{ backgroundImage: `url("${url}")` }}
+                          role="img"
+                          aria-label="Media bukti laporan"
+                        />
+                      </a>
+                    ) : null;
+                  })}
+                </div>
+              )}
+            </section>
+          </>
+        ) : (
+          <div className="rounded-[8px] bg-white py-16 text-center text-sm text-[var(--color-text-tertiary)]">
+            Laporan tidak ditemukan.
+          </div>
+        )}
+      </main>
     </div>
   );
 }

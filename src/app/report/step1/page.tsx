@@ -89,6 +89,7 @@ export default function Step1LokasiPage() {
       <Navbar
         variant="flow"
         showBack
+        showMenu
         title="Buat Laporan"
         rightElement={<span className="text-[20px] font-semibold text-[var(--color-text-primary)]">1/3</span>}
       />
