@@ -70,15 +70,6 @@ export function AdminTopBar({
 
   return (
     <header className="bg-[#FA777D] text-[#202124]">
-      <div className={`flex min-h-[58px] items-center ${containerClass}`}>
-        <div className="h-5 w-12 shrink-0 text-[16px] font-bold leading-none">9:41</div>
-        <div className="ml-auto flex items-center gap-1.5" aria-hidden="true">
-          <span className="h-2.5 w-1 rounded-sm bg-[#202124]" />
-          <span className="h-3.5 w-1 rounded-sm bg-[#202124]" />
-          <span className="h-[18px] w-1 rounded-sm bg-[#202124]" />
-          <span className="ml-2 h-3.5 w-5 rounded-[3px] border border-[#202124] bg-[#3A2C2C]" />
-        </div>
-      </div>
       <div className="bg-white">
         <div className={`${containerClass} pb-10 pt-5 md:pb-12`}>
           <div className="flex items-start justify-between gap-4">
