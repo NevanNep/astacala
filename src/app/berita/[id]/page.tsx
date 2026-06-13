@@ -4,9 +4,12 @@ import Link from "next/link";
 import { Navbar } from "@/src/components/Navbar";
 import { Footer } from "@/src/components/Footer";
 import { Badge } from "@/src/components/Badge";
-import { 
-  requirePublicSupabase, 
-  loadPublishedNewsDetail 
+import {
+  requirePublicSupabase,
+  loadPublishedNewsDetail,
+  resolveBeritaViewerRole,
+  resolveBeritaBackHref,
+  buildBeritaListHref
 } from "../_components/server-data";
 
 export const dynamic = "force-dynamic";
@@ -29,20 +32,39 @@ function formatNewsDetailDate(isoString: string) {
 
 export default async function PublicBeritaDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ returnTo?: string }>;
 }) {
   const { id } = await params;
+  const { returnTo } = await searchParams;
   const supabase = await requirePublicSupabase();
-  const { news, error } = await loadPublishedNewsDetail(supabase, id);
+  const [{ news, error }, role] = await Promise.all([
+    loadPublishedNewsDetail(supabase, id),
+    resolveBeritaViewerRole(supabase),
+  ]);
 
   if (error || !news) {
     notFound();
   }
 
+  // Navbar exit target (public -> "/", relawan -> "/dashboard", admin ->
+  // "/admin/dashboard", or a safe returnTo). The inline "Kembali ke Daftar
+  // Berita" link always returns to the list, preserving authenticated context.
+  const backHref = resolveBeritaBackHref(role, returnTo);
+  const listHref = role === "public" ? "/berita" : buildBeritaListHref(backHref);
+  const showMenu = role === "relawan";
+
   return (
     <div className="min-h-screen flex flex-col bg-[var(--color-bg-default)]">
-      <Navbar variant="authenticated" />
+      <Navbar
+        variant="flow"
+        title="Berita Bencana"
+        showBack
+        backHref={backHref}
+        showMenu={showMenu}
+      />
 
       <main className="w-full pb-10 md:pb-16 flex-1">
         {/* Cover Image Header if exists */}
@@ -61,8 +83,8 @@ export default async function PublicBeritaDetailPage({
             
             <div className="p-5 md:p-10">
               {/* Back Button */}
-              <Link 
-                href="/berita" 
+              <Link
+                href={listHref}
                 className="inline-flex items-center gap-2 text-[14px] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors mb-6 md:mb-8 bg-gray-50 hover:bg-red-50 px-4 py-2 rounded-full w-fit border border-gray-200"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>

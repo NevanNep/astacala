@@ -15,12 +15,17 @@ interface PublicNewsCardProps {
   time: string;
   description: string;
   imageUrl: string | null;
+  /** Safe internal path to return to; forwarded to the detail page. */
+  returnTo?: string;
 }
 
-export function PublicNewsCard({ id, title, category, location, time, description, imageUrl }: PublicNewsCardProps) {
+export function PublicNewsCard({ id, title, category, location, time, description, imageUrl, returnTo }: PublicNewsCardProps) {
+  const href = returnTo
+    ? `/berita/${id}?returnTo=${encodeURIComponent(returnTo)}`
+    : `/berita/${id}`;
   return (
-    <Link 
-      href={`/berita/${id}`}
+    <Link
+      href={href}
       className="group block rounded-[var(--radius-xl)] overflow-hidden relative shadow-sm border border-[var(--color-border)] hover:shadow-md transition-shadow h-full flex flex-col bg-white"
     >
       <div className="w-full min-h-[180px] md:min-h-[200px] relative flex flex-col justify-end shrink-0 overflow-hidden">

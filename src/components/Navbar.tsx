@@ -29,7 +29,7 @@ export function Navbar({
   const defaultContainerClassName = isFlow
     ? "max-w-[860px]"
     : "max-w-[1200px] lg:px-12";
-  const shouldShowMenu = showMenu ?? variant !== "flow";
+  const shouldShowMenu = showMenu ?? variant === "authenticated";
   const canOpenVolunteerSidebar = variant === "authenticated" || (variant === "flow" && shouldShowMenu);
   const handleBack = () => {
     if (backHref) {
@@ -99,12 +99,6 @@ export function Navbar({
                   <span className="h-[1.5px] w-full bg-[var(--color-text-primary)]" />
                 </span>
               </button>
-            ) : shouldShowMenu ? (
-              <div className="flex h-[10px] w-[14px] flex-col justify-between" aria-hidden="true">
-                <div className="h-[1.5px] w-full bg-[var(--color-text-primary)]" />
-                <div className="h-[1.5px] w-[10px] bg-[var(--color-text-primary)]" />
-                <div className="h-[1.5px] w-full bg-[var(--color-text-primary)]" />
-              </div>
             ) : null}
           </div>
         </div>
