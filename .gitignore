@@ -40,4 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/src/generated/prisma
+# legacy local sqlite db (Prisma/libsql removed; project uses Supabase)
+dev.db
