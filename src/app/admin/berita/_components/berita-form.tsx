@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdminNewsDetail, BeritaFormValues, NewsCategory, UpdateNewsPayload } from "./types";
 import { PublishSuccessModal } from "./admin-berita-ui";
@@ -52,6 +52,22 @@ export function BeritaForm({
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const isEdit = mode === "edit";
+
+  useLayoutEffect(() => {
+    if (isEdit) return;
+    const fileInput = fileInputRef.current;
+
+    return () => {
+      setValues(valuesFromNews(null));
+      setErrors({});
+      setMessage(null);
+      setSubmitting(false);
+      setDeleting(false);
+      setUploadingImage(false);
+      setShowSuccessModal(false);
+      if (fileInput) fileInput.value = "";
+    };
+  }, [isEdit]);
 
   const setField = (field: keyof BeritaFormValues, value: string | boolean | null) => {
     setValues((current) => ({ ...current, [field]: value }));
@@ -244,7 +260,8 @@ export function BeritaForm({
               ref={fileInputRef}
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) handleImageUpload(file);
+                if (file) void handleImageUpload(file);
+                e.target.value = "";
               }}
             />
             

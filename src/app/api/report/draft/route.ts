@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { authorizeUserClient, jsonError } from "@/src/lib/auth-client";
 
-// TODO: Legacy endpoint. Current S08-S10 report draft state is persisted client-side
-// with Zustand/localStorage; keep this route unused until backend draft storage is reintroduced.
+// TODO: Legacy endpoint. Current S08-S10 report draft state is temporary client-side
+// wizard state; keep this route unused until explicit backend draft storage is reintroduced.
 const DISASTER_TYPES = ["Banjir", "Gempa", "Longsor", "Kebakaran", "Tsunami", "Lainnya"] as const;
 const SEVERITIES = ["Ringan", "Sedang", "Parah", "Kritis"] as const;
 const DRAFT_COOKIE = "report_draft";

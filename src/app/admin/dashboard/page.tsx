@@ -99,12 +99,12 @@ function formatMissionDate(value: string | null) {
 }
 
 function getDuration(start: string | null, end: string | null) {
-  if (!start || !end) return "5 Hari";
+  if (!start || !end) return "-";
 
   const startDate = new Date(start);
   const endDate = new Date(end);
   if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
-    return "5 Hari";
+    return "-";
   }
 
   const diff = Math.max(
@@ -255,7 +255,7 @@ export default async function AdminDashboardPage() {
     }
   }
 
-  const adminName = profile.nama || user.email || "Admin Dandy";
+  const adminName = profile.nama || user.email || "Admin";
   const initials = getInitials(adminName);
   const hasStatsError = [
     totalLaporan,
@@ -304,7 +304,7 @@ export default async function AdminDashboardPage() {
           )}
 
           <div className="grid grid-cols-4 gap-6">
-            <StatCard label="Total Laporan" value={totalLaporan.count ?? 0} detail="+12 bulan ini" />
+            <StatCard label="Total Laporan" value={totalLaporan.count ?? 0} detail="Dari database" />
             <StatCard
               label="Perlu Verifikasi"
               value={laporanPending.count ?? 0}
@@ -320,7 +320,7 @@ export default async function AdminDashboardPage() {
             <StatCard
               label="Relawan Aktif"
               value={totalRelawan.count ?? 0}
-              detail="+5 minggu ini"
+              detail="Dari database"
               color="text-[#269243]"
             />
           </div>
@@ -402,7 +402,7 @@ export default async function AdminDashboardPage() {
                     <div className="mb-12 flex items-start justify-between gap-4">
                       <div>
                         <h3 className="text-[23px] font-semibold leading-none">
-                          {mission.judul ?? "Operasi Banjir"}
+                          {mission.judul ?? "Misi tanpa judul"}
                         </h3>
                         <p className="mt-2 text-[15px] font-medium text-[#737373]">
                           {mission.lokasi ?? "Lokasi belum tersedia"}
@@ -435,7 +435,7 @@ export default async function AdminDashboardPage() {
                       <div>
                         <p className="font-medium text-[#737373]">Jenis</p>
                         <p className="mt-1 font-semibold text-[#111111]">
-                          {mission.jenis ?? "Evakuasi"}
+                          {mission.jenis ?? "-"}
                         </p>
                       </div>
                     </div>
@@ -476,22 +476,22 @@ export default async function AdminDashboardPage() {
             <h3 className="text-[22px] font-bold">Explore</h3>
             <nav className="mt-8 flex flex-col gap-6 text-[22px] text-white/75">
               <Link href="#menunggu-verifikasi" className="hover:text-white">
-                Design
+                Laporan
               </Link>
               <Link href="#menunggu-verifikasi" className="hover:text-white">
-                Prototyping
+                Verifikasi
               </Link>
               <Link href="#misi-aktif" className="hover:text-white">
-                Development features
+                Misi Aktif
               </Link>
               <Link href="#misi-aktif" className="hover:text-white">
-                Design systems
+                Relawan
               </Link>
               <Link href="#misi-aktif" className="hover:text-white">
-                Collaboration features
+                Berita
               </Link>
               <Link href="#misi-aktif" className="hover:text-white">
-                Design process
+                Pusat Kendali
               </Link>
             </nav>
           </div>

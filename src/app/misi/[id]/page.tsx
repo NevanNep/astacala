@@ -56,7 +56,6 @@ function InfoBox({ label, value }: { label: string; value: string }) {
 
 function RegisteredAvatars({ count }: { count: number }) {
   const displayCount = Math.min(count, 3);
-  const initials = ["AB", "BC", "CD"];
   const colors = [
     "bg-[var(--color-danger)]",
     "bg-[var(--color-success)]",
@@ -67,13 +66,12 @@ function RegisteredAvatars({ count }: { count: number }) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex -space-x-2">
-        {initials.slice(0, displayCount).map((init, i) => (
+        {Array.from({ length: displayCount }).map((_, i) => (
           <div
             key={i}
-            className={`w-9 h-9 rounded-full border-2 border-white flex items-center justify-center text-[11px] font-bold text-white ${colors[i]}`}
-          >
-            {init}
-          </div>
+            className={`w-9 h-9 rounded-full border-2 border-white ${colors[i]}`}
+            aria-hidden="true"
+          />
         ))}
         {overflow > 0 && (
           <div className="w-9 h-9 rounded-full border-2 border-white flex items-center justify-center text-[11px] font-bold text-white bg-gray-400">

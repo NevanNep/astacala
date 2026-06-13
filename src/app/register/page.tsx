@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Input } from "../../components/Input";
@@ -16,12 +16,27 @@ function getErrorMessage(error: unknown) {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement | null>(null);
   const [nama, setNama] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useLayoutEffect(() => {
+    const form = formRef.current;
+
+    return () => {
+      form?.reset();
+      setNama("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setError("");
+      setLoading(false);
+    };
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -80,7 +95,7 @@ export default function RegisterPage() {
               <div className="w-[32px] h-[3px] bg-[var(--color-primary)] rounded-full" />
             </div>
 
-            <form className="space-y-6 md:space-y-8" onSubmit={handleSubmit}>
+            <form ref={formRef} className="space-y-6 md:space-y-8" onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <Input
                   label="Name"

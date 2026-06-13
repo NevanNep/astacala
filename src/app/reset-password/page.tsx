@@ -1,16 +1,28 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import { Input } from "../../components/Input";
 import { Button } from "../../components/Button";
 import { useRouter } from "next/navigation";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement | null>(null);
   
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  useLayoutEffect(() => {
+    const form = formRef.current;
+
+    return () => {
+      form?.reset();
+      setPassword("");
+      setConfirmPassword("");
+      setIsSubmitted(false);
+    };
+  }, []);
 
   // Validation rules
   const reqLength = password.length >= 8;
@@ -63,7 +75,7 @@ export default function ResetPasswordPage() {
               </p>
             </div>
 
-            <form className="space-y-6 md:space-y-8" onSubmit={handleSubmit}>
+            <form ref={formRef} className="space-y-6 md:space-y-8" onSubmit={handleSubmit}>
               <div className="space-y-4">
                 
                 <Input
@@ -111,6 +123,7 @@ export default function ResetPasswordPage() {
                   <Input
                     label="Konfirmasi Password"
                     type="password"
+                    value={confirmPassword}
                     onChange={(e) => {
                       setConfirmPassword(e.target.value);
                       if (isSubmitted) setIsSubmitted(false);

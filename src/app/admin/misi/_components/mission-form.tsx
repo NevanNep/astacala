@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useLayoutEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type {
   AdminMissionDetail,
@@ -125,6 +125,19 @@ export function MissionForm({
       status: values.status,
     };
   }, [values]);
+
+  useLayoutEffect(() => {
+    if (isEdit) return;
+
+    return () => {
+      setStep(1);
+      setValues(valuesFromMission(null));
+      setErrors({});
+      setMessage(null);
+      setSubmitting(false);
+      setDeleting(false);
+    };
+  }, [isEdit]);
 
   const setField = (field: keyof MissionFormValues, value: string) => {
     setValues((current) => ({ ...current, [field]: value }));

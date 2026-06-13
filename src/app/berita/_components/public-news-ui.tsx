@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/src/components/Badge";
@@ -23,17 +23,21 @@ export function PublicNewsCard({ id, title, category, location, time, descriptio
       href={`/berita/${id}`}
       className="group block rounded-[var(--radius-xl)] overflow-hidden relative shadow-sm border border-[var(--color-border)] hover:shadow-md transition-shadow h-full flex flex-col bg-white"
     >
-      {/* Image Area with Gradient Placeholder */}
-      <div 
-        className="w-full min-h-[180px] md:min-h-[200px] relative flex flex-col justify-end shrink-0"
-        style={{ 
-          background: imageUrl ? `url(${imageUrl}) center/cover no-repeat` : "linear-gradient(135deg, #78909C, #546E7A)" 
-        }}
-      >
+      <div className="w-full min-h-[180px] md:min-h-[200px] relative flex flex-col justify-end shrink-0 overflow-hidden">
+        {imageUrl ? (
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url("${imageUrl}")` }}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-bg-muted)] text-[12px] font-medium text-[var(--color-text-tertiary)]">
+            Tidak ada gambar
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
         
         <div className="absolute top-[8px] right-[8px]">
-          <Badge variant="success" text="Terverifikasi" icon="✓" />
+          <Badge variant="success" text="Terverifikasi" icon="OK" />
         </div>
 
         <div className="relative p-4 z-10 flex flex-col items-start gap-2">
@@ -106,10 +110,11 @@ export function SearchBar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
-  const [query, setQuery] = useState(initialQuery);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
+    const query = String(formData.get("q") ?? "");
     const params = new URLSearchParams(searchParams.toString());
     if (query.trim()) {
       params.set("q", query.trim());
@@ -127,9 +132,10 @@ export function SearchBar() {
         </svg>
       </div>
       <input
+        key={initialQuery}
+        name="q"
         type="text"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        defaultValue={initialQuery}
         placeholder="Cari berita..."
         className="block w-full pl-10 pr-3 py-2 border border-[#E0E0E0] rounded-[8px] text-[14px] focus:outline-none focus:ring-1 focus:ring-[#D3262E] focus:border-[#D3262E] transition-colors"
       />

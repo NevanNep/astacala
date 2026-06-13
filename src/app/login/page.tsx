@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 /*import { Navbar } from "../../components/Navbar";*/
@@ -23,10 +23,23 @@ function getErrorMessage(error: unknown) {
 
 export default function LoginPage() {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useLayoutEffect(() => {
+    const form = formRef.current;
+
+    return () => {
+      form?.reset();
+      setEmail("");
+      setPassword("");
+      setError("");
+      setLoading(false);
+    };
+  }, []);
 
   async function handleSubmit(e?: React.FormEvent | React.MouseEvent) {
     if (e) e.preventDefault();
@@ -90,10 +103,10 @@ export default function LoginPage() {
               <div className="w-[32px] h-[3px] bg-[var(--color-primary)] rounded-full" />
             </div>
 
-            <form className="space-y-6 md:space-y-8" onSubmit={handleSubmit}>
+            <form ref={formRef} className="space-y-6 md:space-y-8" onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <Input
-                  label="Email / Username"
+                  label="Email"
                   type="email"
                   placeholder="email@gmail.com"
                   required

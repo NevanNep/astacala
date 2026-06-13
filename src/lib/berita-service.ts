@@ -157,6 +157,7 @@ export async function GET_NEWS(request: NextRequest) {
     let query = supabase
       .from("berita")
       .select("*")
+      .eq("terverifikasi", true)
       .order("created_at", { ascending: false });
 
     const kategori = request.nextUrl.searchParams.get("kategori");
@@ -208,6 +209,7 @@ export async function GET_NEWS_DETAIL(
       .from("berita")
       .select("*")
       .eq("id", id)
+      .eq("terverifikasi", true)
       .maybeSingle();
 
     if (error) {

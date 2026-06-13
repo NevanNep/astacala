@@ -402,7 +402,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // TODO: Legacy cleanup. S08-S10 drafts now live in the client Zustand store,
+    // TODO: Legacy cleanup. S08-S10 drafts now live as temporary client wizard state,
     // and some Supabase projects no longer have a report_drafts table.
     cookieStore.delete("report_draft");
 

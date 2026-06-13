@@ -5,6 +5,8 @@ Astacala Rescue adalah aplikasi web pelaporan dan koordinasi relawan bencana. Ap
 - **Relawan**: registrasi/login, membuat laporan bencana berbasis lokasi, melihat riwayat laporan, mengikuti misi, membaca berita, dan menerima notifikasi.
 - **Pusat Kendali/Admin**: memantau dashboard, memverifikasi laporan, mengelola misi, mengirim notifikasi misi, mengelola berita, dan melihat data relawan.
 
+Secara teknis, akun Pusat Kendali/Admin disimpan sebagai `profiles.role = "admin"` untuk seluruh pengecekan otorisasi.
+
 ## Tech Stack
 
 - **Framework**: Next.js 16 App Router

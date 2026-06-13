@@ -161,20 +161,10 @@ export function AdminSidebar({ open, onClose }: AdminSidebarProps) {
     }
 
     onClose();
-    // Defaulting to /login but checking conventions
-    router.replace("/admin/login");
+    router.replace("/login");
     router.refresh();
-    
-    // If /admin/login 404s, standard Nextjs handles it gracefully
-    // Let's replace to /login actually, since ASTACALA standard is /login for both 
-    // unless admin/login is strictly used. I'll use /login to be safe because
-    // requireAdminSupabase in page.tsx uses redirect("/login").
   }
 
-  // To match the exact styling requested:
-  // - Top profile red/pink like screenshot.
-  // - Active menu items: red highlighting.
-  // - Close button, hamburger behavior.
   return (
     <>
       {/* Backdrop */}

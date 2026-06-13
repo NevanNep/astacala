@@ -1,10 +1,32 @@
 "use client";
 
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
 import { DisasterType, ReportDraft, Severity } from "./report-flow";
 
-export const EMPTY_REPORT_DRAFT: ReportDraft = {
+export const REPORT_DRAFT_STORAGE_KEY = "astacala-report-draft";
+
+export function createEmptyReportDraft(): ReportDraft {
+  return {
+    latitude: null,
+    longitude: null,
+    alamat: "",
+    detail: "",
+    jenis_bencana: "",
+    keparahan: "",
+    deskripsi: "",
+    kebutuhan: [],
+    media_paths: [],
+  };
+}
+
+export const EMPTY_REPORT_DRAFT: ReportDraft = createEmptyReportDraft();
+
+function clearLegacyPersistedDraft() {
+  if (typeof localStorage === "undefined") return;
+  localStorage.removeItem(REPORT_DRAFT_STORAGE_KEY);
+}
+
+const INITIAL_REPORT_DRAFT: ReportDraft = {
   latitude: null,
   longitude: null,
   alamat: "",
@@ -34,34 +56,27 @@ interface ReportDraftState {
 }
 
 export const useReportDraftStore = create<ReportDraftState>()(
-  persist(
-    (set) => ({
-      draft: EMPTY_REPORT_DRAFT,
-      hasHydrated: false,
-      setHasHydrated: (hasHydrated) => set({ hasHydrated }),
-      setLocation: (location) =>
-        set((state) => ({
-          draft: {
-            ...state.draft,
-            ...location,
-          },
-        })),
-      setCondition: (condition) =>
-        set((state) => ({
-          draft: {
-            ...state.draft,
-            ...condition,
-          },
-        })),
-      clearDraft: () => set({ draft: EMPTY_REPORT_DRAFT }),
-    }),
-    {
-      name: "astacala-report-draft",
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ draft: state.draft }),
-      onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
-      },
-    }
-  )
+  (set) => ({
+    draft: INITIAL_REPORT_DRAFT,
+    hasHydrated: true,
+    setHasHydrated: (hasHydrated) => set({ hasHydrated }),
+    setLocation: (location) =>
+      set((state) => ({
+        draft: {
+          ...state.draft,
+          ...location,
+        },
+      })),
+    setCondition: (condition) =>
+      set((state) => ({
+        draft: {
+          ...state.draft,
+          ...condition,
+        },
+      })),
+    clearDraft: () => {
+      clearLegacyPersistedDraft();
+      set({ draft: createEmptyReportDraft() });
+    },
+  })
 );

@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { AdminNewsDetail, AdminNewsListItem } from "./types";
 
 export const ADMIN_BERITA_LIST_CONTAINER = "mx-auto w-full max-w-[1200px] px-4 md:px-8 lg:px-12";
+const ADMIN_ROLE = "admin";
 
 export async function requireAdminSupabase() {
   const cookieStore = await cookies();
@@ -43,8 +44,7 @@ export async function requireAdminSupabase() {
     .eq("id", user.id)
     .maybeSingle<{ role: string | null }>();
 
-  const role = profile?.role;
-  if (profileError || (role !== "admin" && role !== "operator" && role !== "pusat_kendali")) {
+  if (profileError || profile?.role !== ADMIN_ROLE) {
     redirect("/dashboard");
   }
 

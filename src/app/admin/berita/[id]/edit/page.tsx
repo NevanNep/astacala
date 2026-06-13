@@ -27,7 +27,7 @@ export default async function AdminBeritaEditPage({
       />
 
       <main className="mx-auto w-full max-w-[760px] px-4 pt-5 md:max-w-[860px] md:px-8 lg:max-w-[860px]">
-        <BeritaForm mode="edit" news={news} />
+        <BeritaForm key={news.id} mode="edit" news={news} />
       </main>
     </div>
   );

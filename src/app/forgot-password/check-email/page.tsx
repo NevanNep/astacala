@@ -4,9 +4,6 @@ import React from "react";
 import Link from "next/link";
 
 export default function CheckEmailPage() {
-  // Hardcoded for demonstration as per specs
-  const userEmail = "user@email.com";
-
   return (
     <div className="min-h-screen flex flex-col relative w-full">
       <main className="w-full relative flex-1 flex items-center justify-center overflow-hidden">
@@ -37,9 +34,6 @@ export default function CheckEmailPage() {
                 Kami telah mengirimkan link untuk reset password ke email kamu.
               </p>
               
-              <span className="text-[var(--text-nano)] font-medium text-[var(--color-primary)]">
-                {userEmail}
-              </span>
             </div>
 
             <div className="pt-2">

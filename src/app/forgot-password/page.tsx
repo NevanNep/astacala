@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Input } from "../../components/Input";
@@ -16,9 +16,21 @@ function getErrorMessage(error: unknown) {
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement | null>(null);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useLayoutEffect(() => {
+    const form = formRef.current;
+
+    return () => {
+      form?.reset();
+      setEmail("");
+      setError("");
+      setLoading(false);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +92,7 @@ export default function ForgotPasswordPage() {
             </div>
 
             {/* Form */}
-            <form className="space-y-6 md:space-y-8" onSubmit={handleSubmit}>
+            <form ref={formRef} className="space-y-6 md:space-y-8" onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <Input
                   label="Email"

@@ -35,7 +35,7 @@ export default async function EditAdminMissionPage({ params }: PageProps) {
             <p className="text-[14px] font-semibold text-[#D3262E]">{error}</p>
           </MissionSectionCard>
         ) : mission ? (
-          <MissionForm mode="edit" mission={mission} />
+          <MissionForm key={mission.id} mode="edit" mission={mission} />
         ) : (
           <MissionSectionCard title="Misi tidak ditemukan">
             <p className="text-[14px] font-semibold text-[#777777]">

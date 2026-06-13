@@ -60,14 +60,14 @@ drop policy if exists "admin_select_laporan" on public.laporan;
 create policy "admin_select_laporan"
   on public.laporan
   for select
-  using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'pusat_kendali');
+  using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 
 drop policy if exists "admin_update_laporan_status" on public.laporan;
 create policy "admin_update_laporan_status"
   on public.laporan
   for update
-  using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'pusat_kendali')
-  with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'pusat_kendali');
+  using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
+  with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 
 drop policy if exists "relawan_select_own_laporan_media" on public.laporan_media;
 create policy "relawan_select_own_laporan_media"
@@ -99,7 +99,7 @@ drop policy if exists "admin_select_laporan_media" on public.laporan_media;
 create policy "admin_select_laporan_media"
   on public.laporan_media
   for select
-  using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'pusat_kendali');
+  using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (

@@ -22,7 +22,6 @@ type VolunteerMenuItem = {
   label: string;
   href: string;
   isActive: (pathname: string) => boolean;
-  pendingRoute?: string;
 };
 
 type VolunteerSidebarProps = {
@@ -59,13 +58,6 @@ const menuItems: VolunteerMenuItem[] = [
     label: "Berita Bencana",
     href: "/berita",
     isActive: (pathname) => pathname === "/berita" || pathname.startsWith("/berita/"),
-  },
-  {
-    label: "Profil",
-    href: "/dashboard",
-    isActive: (pathname) => pathname === "/profil" || pathname === "/profile",
-    // TODO: Replace this fallback with /profil when the volunteer profile page exists.
-    pendingRoute: "/profil",
   },
   {
     label: "Notifikasi",
@@ -258,9 +250,6 @@ export function VolunteerSidebar({ open, onClose }: VolunteerSidebarProps) {
                   key={item.label}
                   href={item.href}
                   onClick={onClose}
-                  title={
-                    item.pendingRoute ? `TODO: gunakan ${item.pendingRoute} saat route frontend tersedia.` : undefined
-                  }
                   className={`flex min-h-8 items-center gap-4 text-[20px] font-semibold leading-tight transition-colors ${
                     active ? "text-[var(--color-primary)]" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
                   }`}
