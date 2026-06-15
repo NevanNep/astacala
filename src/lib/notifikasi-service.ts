@@ -45,9 +45,11 @@ export async function GET_NOTIFICATIONS(request: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
+      console.error("[Notification Service] Query error:", error);
       return jsonError(error.message, 500);
     }
 
+    console.log(`[Notification Service] Found ${data?.length ?? 0} notifications for user ${auth.user.id}`);
     return NextResponse.json({ notifications: data ?? [] });
   } catch (error) {
     console.error("List notifications error:", error);

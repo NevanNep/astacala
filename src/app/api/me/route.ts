@@ -36,6 +36,7 @@ export async function GET() {
       nim: profile?.nim ?? null,
       no_hp: profile?.no_hp ?? null,
     },
+    profile: profile ?? null, // Added for debugging
   })
 }
 

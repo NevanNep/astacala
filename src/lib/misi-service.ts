@@ -324,6 +324,8 @@ export async function sendMissionNotifications(
   misiId: string,
   judul: string
 ): Promise<NotificationResult> {
+  console.log(`[Notification Service] Starting notifications for mission: ${misiId} ("${judul}")`);
+
   const { data: misi, error: misiError } = await adminClient
     .from("misi")
     .select("id")
@@ -331,28 +333,35 @@ export async function sendMissionNotifications(
     .maybeSingle();
 
   if (misiError) {
-    throw new Error(misiError.message);
+    console.error("[Notification Service] Error fetching mission:", misiError);
+    return { error: misiError.message, status: 500 };
   }
 
   if (!misi) {
+    console.warn(`[Notification Service] Mission with ID ${misiId} not found.`);
     return { error: "Misi tidak ditemukan" as const, status: 404 as const };
   }
 
+  console.log("[Notification Service] Fetching recipients with role: relawan");
   const { data: relawan, error: relawanError } = await adminClient
     .from("profiles")
     .select("id")
     .eq("role", "relawan");
 
   if (relawanError) {
-    throw new Error(relawanError.message);
+    console.error("[Notification Service] Error fetching relawan:", relawanError);
+    return { error: relawanError.message, status: 500 };
   }
 
   const recipients = relawan ?? [];
+  console.log(`[Notification Service] Found ${recipients.length} recipients.`);
 
   if (recipients.length === 0) {
+    console.log("[Notification Service] No recipients found. Skipping notification insert.");
     return { sent: 0 };
   }
 
+  console.log(`[Notification Service] Inserting ${recipients.length} notifications into 'notifikasi' table...`);
   const { error: notificationError } = await adminClient.from("notifikasi").insert(
     recipients.map((profile) => ({
       user_id: profile.id,
@@ -364,9 +373,11 @@ export async function sendMissionNotifications(
   );
 
   if (notificationError) {
+    console.error("[Notification Service] Error inserting notifications:", notificationError);
     throw new Error(notificationError.message);
   }
 
+  console.log(`[Notification Service] Successfully sent ${recipients.length} notifications.`);
   return { sent: recipients.length };
 }
 

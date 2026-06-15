@@ -166,6 +166,7 @@ export default function DashboardPage() {
       try {
         const res = await fetch("/api/notifikasi?limit=3");
         const data: { notifications?: DashboardNotification[] } = await res.json().catch(() => ({}));
+        console.log("[Dashboard] Received notifications:", data.notifications);
 
         if (cancelled) return;
         if (res.status === 401) {
@@ -173,9 +174,20 @@ export default function DashboardPage() {
           return;
         }
 
-        setNotifications(res.ok ? data.notifications ?? [] : []);
-      } catch {
-        if (!cancelled) setNotifications([]);
+        const safeNotifications = (data.notifications ?? []).map((item: any) => ({
+          id: String(item.id || ""),
+          type: item.type || "pengumuman",
+          judul: item.judul || "Notifikasi",
+          pesan: item.pesan || "",
+          dibaca: !!item.dibaca,
+          created_at: item.created_at || new Date().toISOString(),
+        })).filter(n => n.id);
+
+        setNotifications(res.ok ? safeNotifications : []);
+      } catch (err) {
+        console.error("[Dashboard] Load notifications error:", err);
+        if (cancelled) return;
+        setNotifications([]);
       } finally {
         if (!cancelled) setNotificationsLoading(false);
       }

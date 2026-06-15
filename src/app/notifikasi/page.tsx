@@ -144,20 +144,31 @@ function iconColors(type: NotificationType | null) {
 }
 
 function parseNotifications(data: unknown): NotificationItem[] {
-  if (!data || typeof data !== "object" || !("notifications" in data)) return [];
+  if (!data || typeof data !== "object" || !("notifications" in data)) {
+    console.log("[Notifications Page] Invalid data structure:", data);
+    return [];
+  }
 
   const notifications = (data as NotificationsResponse).notifications;
-  if (!Array.isArray(notifications)) return [];
+  if (!Array.isArray(notifications)) {
+    console.log("[Notifications Page] notifications is not an array:", notifications);
+    return [];
+  }
 
-  return notifications.filter((item): item is NotificationItem => {
-    return (
-      item !== null &&
-      typeof item === "object" &&
-      typeof item.id === "string" &&
-      typeof item.dibaca === "boolean" &&
-      typeof item.created_at === "string"
-    );
-  });
+  return notifications.map((item: any) => {
+    // Ensure essential fields exist, provide defaults for others
+    return {
+      id: String(item.id || ""),
+      user_id: item.user_id || null,
+      type: item.type || "pengumuman",
+      judul: item.judul || "Notifikasi",
+      pesan: item.pesan || "",
+      laporan_id: item.laporan_id || null,
+      misi_id: item.misi_id || null,
+      dibaca: !!item.dibaca,
+      created_at: item.created_at || new Date().toISOString(),
+    };
+  }).filter(item => item.id);
 }
 
 function getErrorMessage(data: unknown, fallback: string) {
@@ -289,6 +300,7 @@ export default function NotificationsPage() {
       try {
         const response = await fetch(`/api/notifikasi?limit=${limit}`);
         const data: unknown = await response.json().catch(() => null);
+        console.log("[Notifications Page] Received data:", data);
 
         if (cancelled) return;
 
