@@ -64,6 +64,11 @@ const menuItems: VolunteerMenuItem[] = [
     href: "/notifikasi",
     isActive: (pathname) => pathname === "/notifikasi" || pathname.startsWith("/notifikasi/"),
   },
+  {
+    label: "Keamanan",
+    href: "/security",
+    isActive: (pathname) => pathname === "/security",
+  },
 ];
 
 function getInitials(profile: VolunteerProfile | null) {

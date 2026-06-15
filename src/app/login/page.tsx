@@ -11,6 +11,7 @@ type PostLoginRoute = "/admin/dashboard" | "/dashboard";
 
 interface LoginSuccessResponse {
   redirectTo?: PostLoginRoute;
+  mfaRequired?: boolean;
 }
 
 interface ApiErrorResponse {
@@ -55,6 +56,10 @@ export default function LoginPage() {
 
       if (res.ok) {
         const data = (await res.json()) as LoginSuccessResponse;
+        if (data.mfaRequired) {
+          router.push("/login/2fa");
+          return;
+        }
         router.push(data.redirectTo ?? "/dashboard");
         router.refresh();
         return;

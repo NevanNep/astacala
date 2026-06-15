@@ -50,6 +50,11 @@ const menuItems: AdminMenuItem[] = [
     href: "/admin/berita",
     isActive: (pathname) => pathname === "/admin/berita" || pathname.startsWith("/admin/berita/"),
   },
+  {
+    label: "Keamanan",
+    href: "/admin/security",
+    isActive: (pathname) => pathname === "/admin/security",
+  },
 ];
 
 function getInitials(profile: AdminProfile | null) {

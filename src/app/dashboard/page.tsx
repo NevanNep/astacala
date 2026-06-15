@@ -174,7 +174,7 @@ export default function DashboardPage() {
           return;
         }
 
-        const safeNotifications = (data.notifications ?? []).map((item: any) => ({
+        const safeNotifications = (data.notifications ?? []).map((item) => ({
           id: String(item.id || ""),
           type: item.type || "pengumuman",
           judul: item.judul || "Notifikasi",

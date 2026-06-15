@@ -37,7 +37,7 @@ type AuthResult =
   | { error: NextResponse };
 type NotificationResult =
   | { sent: number }
-  | { error: "Misi tidak ditemukan"; status: 404 };
+  | { error: string; status: 404 | 500 };
 
 function asText(value: unknown) {
   return typeof value === "string" ? value.trim() : "";

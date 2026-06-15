@@ -155,7 +155,7 @@ function parseNotifications(data: unknown): NotificationItem[] {
     return [];
   }
 
-  return notifications.map((item: any) => {
+  return notifications.map((item) => {
     // Ensure essential fields exist, provide defaults for others
     return {
       id: String(item.id || ""),
