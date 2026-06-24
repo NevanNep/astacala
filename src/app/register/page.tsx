@@ -124,7 +124,7 @@ export default function RegisterPage() {
                 />
 
                 <Input
-                  label="Confirm Password"
+                  label="Konfirmasi Password"
                   type="password"
                   required
                   value={confirmPassword}
