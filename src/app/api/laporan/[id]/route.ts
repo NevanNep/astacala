@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authorizeUserClient, jsonError } from "@/src/lib/auth-client";
+import { signLaporanMediaUrls } from "@/src/lib/laporan-media";
 
 type ReportRouteContext = {
   params: Promise<{ id: string }> | { id: string };
@@ -37,7 +38,11 @@ export async function GET(request: NextRequest, context: ReportRouteContext) {
       return jsonError("Laporan tidak ditemukan", 404);
     }
 
-    return NextResponse.json({ report: data });
+    // The query above is scoped to the owner (.eq("user_id", auth.user.id)), so we
+    // only sign media for laporan the caller owns. Bucket is private otherwise.
+    const laporan_media = await signLaporanMediaUrls(auth.supabase, data.laporan_media);
+
+    return NextResponse.json({ report: { ...data, laporan_media } });
   } catch (error) {
     console.error("Get report detail error:", error);
     return jsonError("Internal server error", 500);
