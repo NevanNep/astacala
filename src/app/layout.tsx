@@ -8,8 +8,17 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Astacala Rescue",
-  description: "Portal Relawan Astacala Rescue",
+  title: "Astacala Rescue Reporting System",
+  description:
+    "Platform pelaporan bencana, koordinasi misi, dan informasi bencana terverifikasi untuk relawan Astacala Rescue.",
+  openGraph: {
+    title: "Astacala Rescue Reporting System",
+    description:
+      "Platform pelaporan bencana, koordinasi misi, dan informasi bencana terverifikasi untuk relawan Astacala Rescue.",
+    siteName: "Astacala Rescue Reporting System",
+    locale: "id_ID",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
@@ -18,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${plusJakartaSans.variable} antialiased`}>
+    <html lang="id" className={`${plusJakartaSans.variable} antialiased`}>
       <body>{children}</body>
     </html>
   );
