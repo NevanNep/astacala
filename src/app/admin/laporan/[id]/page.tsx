@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/src/utils/supabase/admin";
 import { createClient } from "@/src/utils/supabase/server";
+import { isMfaSatisfied } from "@/src/lib/mfa";
+import { signLaporanMediaUrls } from "@/src/lib/laporan-media";
 import type { AdminReportDetail } from "../_components/types";
 import { getReporterProfile } from "../_components/types";
 import { AdminTopBar, DetailCard, displayValue, formatAdminDateTime, reportTitle } from "../_components/admin-report-ui";
@@ -26,6 +28,10 @@ async function requireAdminSupabase() {
 
   if (userError || !user) {
     redirect("/login");
+  }
+
+  if (!(await isMfaSatisfied(user))) {
+    redirect("/login/2fa");
   }
 
   const { data: profile, error: profileError } = await userClient
@@ -103,6 +109,12 @@ export default async function AdminReportDetailPage({ params }: PageProps) {
   const supabase = await requireAdminSupabase();
   const { report, error } = id ? await loadReport(supabase, id) : { report: null, error: "ID laporan tidak valid." };
   const reportWithStats = report ? await attachReporterStats(supabase, report) : null;
+
+  // requireAdminSupabase() already enforced the admin role, so signing any report's
+  // media here is authorized. Bucket is private; signed URLs expire shortly.
+  if (reportWithStats) {
+    reportWithStats.laporan_media = await signLaporanMediaUrls(supabase, reportWithStats.laporan_media);
+  }
   const reporter = getReporterProfile(reportWithStats?.profiles);
   const title = reportWithStats ? `#${reportWithStats.id} - ${reportTitle(reportWithStats)}` : `#${id || "Laporan"}`;
   const subtitle = reportWithStats

@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/src/utils/supabase/client";
 import type { AdminReportDetail, ReportMedia, VerifyReportPayload } from "./types";
 import { getReporterProfile, normalizeReportStatus } from "./types";
 import {
@@ -38,10 +37,10 @@ function parseApiError(data: unknown, fallback: string) {
   return fallback;
 }
 
-function mediaPublicUrl(media: ReportMedia) {
-  if (!media.storage_path) return null;
-
-  return createClient().storage.from("laporan-media").getPublicUrl(media.storage_path).data.publicUrl;
+function mediaSignedUrl(media: ReportMedia) {
+  // The laporan-media bucket is private; the server attaches a short-lived signed
+  // URL after verifying the caller is an admin.
+  return media.signed_url ?? null;
 }
 
 function MediaPreview({ media }: { media: ReportMedia[] }) {
@@ -56,7 +55,7 @@ function MediaPreview({ media }: { media: ReportMedia[] }) {
   return (
     <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
       {media.map((item, index) => {
-        const url = mediaPublicUrl(item);
+        const url = mediaSignedUrl(item);
 
         if (!url) return null;
 

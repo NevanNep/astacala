@@ -10,7 +10,6 @@ import {
   ReportRecord,
   ReportStatus,
 } from "../../../lib/report-flow";
-import { createClient } from "../../../utils/supabase/client";
 
 const STATUS_BADGE: Record<ReportStatus, { bg: string; color: string }> = {
   Diterima: { bg: "#E8F5E9", color: "#2E7D32" },
@@ -36,9 +35,9 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 function mediaUrl(media: ReportMediaRecord) {
-  if (!media.storage_path) return null;
-  const supabase = createClient();
-  return supabase.storage.from("laporan-media").getPublicUrl(media.storage_path).data.publicUrl;
+  // The laporan-media bucket is private; the API attaches a short-lived signed
+  // URL after verifying the caller owns the laporan.
+  return media.signed_url ?? null;
 }
 
 export default function ReportDetailPage() {

@@ -60,6 +60,9 @@ export interface ReportMediaRecord {
   storage_path: string | null;
   type: string | null;
   created_at?: string | null;
+  // Short-lived signed URL generated server-side after auth/RBAC checks.
+  // The laporan-media bucket is private, so this is the only way to view media.
+  signed_url?: string | null;
 }
 
 const MEDIA_DB_NAME = "astacala-report-media";

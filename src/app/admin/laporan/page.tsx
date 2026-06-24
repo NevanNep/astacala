@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/src/utils/supabase/admin";
 import { createClient } from "@/src/utils/supabase/server";
+import { isMfaSatisfied } from "@/src/lib/mfa";
 import type { AdminReportListItem } from "./_components/types";
 import { AdminTopBar, ReportListCard } from "./_components/admin-report-ui";
 
@@ -47,6 +48,10 @@ async function requireAdminSupabase() {
 
   if (userError || !user) {
     redirect("/login");
+  }
+
+  if (!(await isMfaSatisfied(user))) {
+    redirect("/login/2fa");
   }
 
   const { data: profile, error: profileError } = await userClient
