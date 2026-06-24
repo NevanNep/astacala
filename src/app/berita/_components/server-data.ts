@@ -68,6 +68,35 @@ const ROLE_DEFAULT_RETURN: Record<BeritaViewerRole, string> = {
 };
 
 /**
+ * Detect the viewer role from the current Supabase session. Used only to pick a
+ * sensible back/exit target (relawan -> /dashboard, admin -> /admin/dashboard,
+ * public -> "/"); the relawan navigation menu itself stays hidden on these
+ * public berita pages. Falls back to "public" on any error so published berita
+ * stays readable for everyone.
+ */
+export async function resolveBeritaViewerRole(
+  supabase: SupabaseClient
+): Promise<BeritaViewerRole> {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return "public";
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle<{ role: string | null }>();
+
+    return profile?.role === "admin" ? "admin" : "relawan";
+  } catch {
+    return "public";
+  }
+}
+
+/**
  * Validate a `returnTo` query param to prevent open-redirect attacks.
  * Only internal, absolute paths are allowed.
  */

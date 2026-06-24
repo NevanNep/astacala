@@ -7,6 +7,7 @@ import { Badge } from "@/src/components/Badge";
 import {
   requirePublicSupabase,
   loadPublishedNewsDetail,
+  resolveBeritaViewerRole,
   resolveBeritaBackHref
 } from "../_components/server-data";
 
@@ -38,16 +39,19 @@ export default async function PublicBeritaDetailPage({
   const { id } = await params;
   const { returnTo } = await searchParams;
   const supabase = await requirePublicSupabase();
-  const { news, error } = await loadPublishedNewsDetail(supabase, id);
+  const [{ news, error }, role] = await Promise.all([
+    loadPublishedNewsDetail(supabase, id),
+    resolveBeritaViewerRole(supabase),
+  ]);
 
   if (error || !news) {
     notFound();
   }
 
-  // This is always a public page: no relawan menu, even for logged-in users.
-  // Relawan navigation lives in the dashboard area only. Back/exit goes to a
-  // safe returnTo when provided, otherwise the public home.
-  const backHref = resolveBeritaBackHref("public", returnTo);
+  // No relawan menu here — these pages are always public. But the back/exit
+  // target stays context-aware so a logged-in relawan returns to /dashboard
+  // (admin -> /admin/dashboard, public -> "/"), or a safe returnTo if provided.
+  const backHref = resolveBeritaBackHref(role, returnTo);
   const listHref = "/berita";
 
   return (

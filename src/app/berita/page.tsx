@@ -5,6 +5,7 @@ import { SectionHeader } from "@/src/components/SectionHeader";
 import {
   requirePublicSupabase,
   loadPublishedNews,
+  resolveBeritaViewerRole,
   resolveBeritaBackHref
 } from "./_components/server-data";
 import { 
@@ -35,11 +36,15 @@ export default async function PublicBeritaListPage({
 }) {
   const supabase = await requirePublicSupabase();
   const params = await searchParams;
-  const { news, error } = await loadPublishedNews(supabase, params.q, params.kategori);
+  const [{ news, error }, role] = await Promise.all([
+    loadPublishedNews(supabase, params.q, params.kategori),
+    resolveBeritaViewerRole(supabase),
+  ]);
 
-  // This is always a public page: no relawan menu, even for logged-in users.
-  // Back/exit goes to a safe returnTo when provided, otherwise the public home.
-  const backHref = resolveBeritaBackHref("public", params.returnTo);
+  // No relawan menu here — these pages are always public. But the back/exit
+  // target stays context-aware so a logged-in relawan returns to /dashboard
+  // (admin -> /admin/dashboard, public -> "/"), or a safe returnTo if provided.
+  const backHref = resolveBeritaBackHref(role, params.returnTo);
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--color-bg-default)]">
