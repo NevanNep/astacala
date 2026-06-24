@@ -10,10 +10,6 @@ interface ApiErrorResponse {
   error?: string;
 }
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Unknown";
-}
-
 export default function RegisterPage() {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -55,13 +51,11 @@ export default function RegisterPage() {
         router.refresh();
       } else {
         const data = (await res.json()) as ApiErrorResponse;
-        const errorMsg = data.error ?? "Registrasi gagal. Coba lagi.";
-        setError(errorMsg);
-        alert("Register Error: " + errorMsg);
+        setError(data.error ?? "Registrasi gagal. Coba lagi.");
       }
     } catch (err: unknown) {
-      setError("Terjadi kesalahan. Coba lagi.");
-      alert("Network or Server Error: " + getErrorMessage(err));
+      console.error("Fetch error:", err);
+      setError("Terjadi kesalahan jaringan. Coba lagi.");
     } finally {
       setLoading(false);
     }
@@ -129,9 +123,17 @@ export default function RegisterPage() {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  error={error}
                 />
               </div>
+
+              {error && (
+                <div
+                  role="alert"
+                  className="rounded-[var(--radius-md)] border border-[var(--color-primary)] bg-[#FDECEC] px-[12px] py-[10px] text-[var(--text-caption)] font-medium text-[var(--color-primary)]"
+                >
+                  {error}
+                </div>
+              )}
 
               <div className="pt-2">
                 <Button type="submit" variant="primary" fullWidth className="mt-6" disabled={loading}>
