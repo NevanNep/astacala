@@ -74,7 +74,10 @@ async function loadLatestNews(client: SupabaseClient) {
 async function loadHomeData() {
   const publicClient = createPublicClient();
   const adminClient = createAdminClient();
-  const client = publicClient ?? adminClient;
+  // Prefer the service-role client on the server so RLS on the anon role
+  // cannot silently return count 0 for laporan/misi/profiles. The key never
+  // reaches the browser because this is a Server Component.
+  const client = adminClient ?? publicClient;
 
   if (!client) {
     return {
@@ -90,11 +93,11 @@ async function loadHomeData() {
   } catch (error) {
     console.error("Load home data error:", error);
 
-    if (publicClient && adminClient) {
+    if (adminClient && publicClient) {
       try {
         const [counts, news] = await Promise.all([
-          loadHomeCounts(adminClient),
-          loadLatestNews(adminClient),
+          loadHomeCounts(publicClient),
+          loadLatestNews(publicClient),
         ]);
         return { counts, news, error: null };
       } catch (fallbackError) {

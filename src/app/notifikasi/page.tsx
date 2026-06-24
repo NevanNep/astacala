@@ -20,7 +20,7 @@ interface NotificationItem {
   laporan_id: string | null;
   misi_id: string | null;
   dibaca: boolean;
-  created_at: string;
+  created_at: string | null;
 }
 
 interface NotificationGroup {
@@ -64,7 +64,8 @@ function daysBetween(from: Date, to: Date) {
   return Math.round((startOfDay(to).getTime() - startOfDay(from).getTime()) / msPerDay);
 }
 
-function formatGroupLabel(value: string) {
+function formatGroupLabel(value: string | null) {
+  if (!value) return "Tanggal tidak diketahui";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Tanggal tidak diketahui";
 
@@ -83,9 +84,10 @@ function formatClock(date: Date) {
   });
 }
 
-function formatNotificationTime(value: string) {
+function formatNotificationTime(value: string | null) {
+  if (!value) return "Waktu tidak diketahui";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
+  if (Number.isNaN(date.getTime())) return "Waktu tidak diketahui";
 
   const diffMs = Date.now() - date.getTime();
   const diffSeconds = Math.max(0, Math.floor(diffMs / 1000));
@@ -166,7 +168,7 @@ function parseNotifications(data: unknown): NotificationItem[] {
       laporan_id: item.laporan_id || null,
       misi_id: item.misi_id || null,
       dibaca: !!item.dibaca,
-      created_at: item.created_at || new Date().toISOString(),
+      created_at: item.created_at ?? null,
     };
   }).filter(item => item.id);
 }
