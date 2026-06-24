@@ -150,11 +150,10 @@ export default async function Home() {
       <Navbar variant="public" />
 
       <section className="bg-[var(--color-primary)] px-6 md:px-8 lg:px-12 py-8 md:py-12 flex flex-col items-center justify-center text-center">
-        <div
-          className="w-[50px] h-[50px] rounded-full overflow-hidden mb-[16px]"
-          style={{
-            background: "linear-gradient(135deg, var(--color-secondary) 50%, var(--color-success) 50%)",
-          }}
+        <img
+          src="/images/logo-astacala.png"
+          alt="Astacala Logo"
+          className="h-[64px] w-auto object-contain mb-[16px]"
         />
         <span className="text-[var(--text-nano)] uppercase tracking-[0.05em] text-white/75 mb-[8px]">
           ASTACALA RESCUE - TELKOM UNIVERSITY

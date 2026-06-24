@@ -5,16 +5,11 @@ export function Footer() {
     <footer className="bg-[var(--color-secondary)] w-full">
       <div className="max-w-[1200px] mx-auto py-6 md:py-8 px-4 md:px-8 lg:px-12 flex flex-col gap-6">
         <div className="flex items-center gap-3">
-          {/* Logo Circle */}
-          <div
-            className="w-[22px] h-[22px] rounded-full overflow-hidden shrink-0"
-            style={{
-              background: "linear-gradient(135deg, var(--color-secondary) 50%, var(--color-success) 50%)",
-            }}
+          <img 
+            src="/images/logo-astacala.png" 
+            alt="Astacala Logo" 
+            className="h-[36px] w-auto object-contain shrink-0" 
           />
-          <span className="text-[var(--text-caption)] font-bold tracking-wide text-white">
-            ASTACALA
-          </span>
         </div>
 
         <p className="text-[var(--text-nano)] text-white/60 leading-[1.6]">

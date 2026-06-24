@@ -66,18 +66,11 @@ export function Navbar({
                 </span>
               </button>
             ) : (
-              <div className="flex items-center gap-[6px]">
-                <div
-                  className="h-[26px] w-[26px] overflow-hidden rounded-full"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, var(--color-secondary) 50%, var(--color-success) 50%)",
-                  }}
-                />
-                <span className="text-[var(--text-label)] font-bold tracking-wide text-[var(--color-primary)]">
-                  ASTACALA
-                </span>
-              </div>
+              <img 
+                src="/images/logo-astacala.png" 
+                alt="Astacala" 
+                className="h-[44px] w-auto object-contain" 
+              />
             )}
           </div>
 

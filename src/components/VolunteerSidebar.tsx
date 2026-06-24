@@ -211,15 +211,11 @@ export function VolunteerSidebar({ open, onClose }: VolunteerSidebarProps) {
         }`}
       >
         <div className="flex h-[92px] items-center justify-between border-b border-[var(--color-border)] px-6">
-          <div className="flex items-center gap-2">
-            <div
-              className="h-[34px] w-[34px] overflow-hidden rounded-full border border-white shadow-sm"
-              style={{
-                background: "linear-gradient(135deg, var(--color-secondary) 0 50%, var(--color-success) 50% 100%)",
-              }}
-            />
-            <span className="text-[15px] font-bold text-[var(--color-text-primary)]">ASTACALA</span>
-          </div>
+          <img 
+            src="/images/logo-astacala.png" 
+            alt="Astacala" 
+            className="h-[56px] w-auto object-contain" 
+          />
 
           <button
             type="button"

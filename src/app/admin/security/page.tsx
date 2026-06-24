@@ -16,12 +16,12 @@ type Step = "idle" | "disabling";
 
 function AstacalaLogo({ size = 52 }: { size?: number }) {
   return (
-    <svg aria-hidden="true" width={size} height={size * 0.72} viewBox="0 0 120 86" className="shrink-0">
-      <path d="M7 66C31 18 66 2 105 12C75 19 48 38 23 74L7 66Z" fill="#F5EE20" />
-      <path d="M6 74C42 52 77 45 114 48C78 59 43 68 6 82V74Z" fill="#2E7D32" />
-      <path d="M18 60C45 26 74 16 109 18C83 28 60 45 38 68L18 60Z" fill="#2B52A3" />
-      <path d="M4 82C44 61 78 51 116 50" stroke="#1B1B1B" strokeWidth="4" />
-    </svg>
+    <img 
+      src="/images/logo-astacala.png" 
+      alt="Astacala Logo" 
+      style={{ height: size, width: 'auto' }}
+      className="shrink-0 object-contain" 
+    />
   );
 }
 
