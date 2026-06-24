@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/src/utils/supabase/admin";
 import { createClient } from "@/src/utils/supabase/server";
+import { enforceMfaApi } from "@/src/lib/mfa";
 
 const DISASTER_TYPES = ["Banjir", "Gempa", "Longsor", "Kebakaran", "Tsunami", "Lainnya"] as const;
 const SEVERITIES = ["Ringan", "Sedang", "Parah", "Kritis"] as const;
@@ -38,6 +39,7 @@ type ReportPayload = {
 type AuthenticatedUser = {
   id: string;
   email?: string | null;
+  app_metadata?: Record<string, unknown> | null;
 };
 
 function jsonError(error: string, status: number, field?: string) {
@@ -244,7 +246,7 @@ async function getAuthenticatedUser(request: NextRequest): Promise<Authenticated
     } = await authClient.auth.getUser(bearerToken);
 
     if (user) {
-      return { id: user.id, email: user.email };
+      return { id: user.id, email: user.email, app_metadata: user.app_metadata };
     }
   }
 
@@ -253,7 +255,7 @@ async function getAuthenticatedUser(request: NextRequest): Promise<Authenticated
   } = await supabase.auth.getUser();
 
   if (user) {
-    return { id: user.id, email: user.email };
+    return { id: user.id, email: user.email, app_metadata: user.app_metadata };
   }
 
   return null;
@@ -336,6 +338,11 @@ export async function POST(request: NextRequest) {
     const user = await getAuthenticatedUser(request);
     if (!user) {
       return jsonError("Unauthorized", 401);
+    }
+
+    const mfaError = await enforceMfaApi(user);
+    if (mfaError) {
+      return mfaError;
     }
 
     const contentType = request.headers.get("content-type") ?? "";
@@ -425,6 +432,11 @@ export async function GET(request: NextRequest) {
     const user = await getAuthenticatedUser(request);
     if (!user) {
       return jsonError("Unauthorized", 401);
+    }
+
+    const mfaError = await enforceMfaApi(user);
+    if (mfaError) {
+      return mfaError;
     }
 
     const status = request.nextUrl.searchParams.get("status");

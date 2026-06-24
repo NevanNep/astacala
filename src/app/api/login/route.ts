@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/src/utils/supabase/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { clearMfaVerifiedCookie } from "@/src/lib/mfa";
 
 type LoginBody = {
   email: string;
@@ -112,7 +113,12 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      return NextResponse.json({ mfaRequired: true });
+      // A Supabase session already exists from the password step, but the
+      // second factor is not complete. Invalidate any previous MFA marker so
+      // protected routes stay blocked until this login's OTP is verified.
+      const mfaPending = NextResponse.json({ mfaRequired: true });
+      clearMfaVerifiedCookie(mfaPending);
+      return mfaPending;
     }
 
     return NextResponse.json({

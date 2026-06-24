@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/src/utils/supabase/admin";
 import { createClient } from "@/src/utils/supabase/server";
+import { enforceMfaApi } from "@/src/lib/mfa";
 
 type Profile = {
   role: string | null;
@@ -95,6 +96,13 @@ export async function authorizeUser(request: NextRequest): Promise<AuthResult> {
 
   if (userError || !user) {
     return { error: jsonError("Unauthorized", 401) };
+  }
+
+  // Block accounts with 2FA enabled until the OTP step is completed, even
+  // though Supabase already minted a session at the password step.
+  const mfaError = await enforceMfaApi(user);
+  if (mfaError) {
+    return { error: mfaError };
   }
 
   const adminClient = createAdminClient();

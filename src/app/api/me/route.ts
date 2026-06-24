@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { authorizeUser, jsonError } from '@/src/lib/admin-auth'
 import { createClient } from '@/src/utils/supabase/server'
+import { enforceMfaApi } from '@/src/lib/mfa'
 
 export async function GET() {
   const supabase = createClient(await cookies())
@@ -12,6 +13,11 @@ export async function GET() {
 
   if (userError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const mfaError = await enforceMfaApi(user)
+  if (mfaError) {
+    return mfaError
   }
 
   const { data: profile, error: profileError } = await supabase

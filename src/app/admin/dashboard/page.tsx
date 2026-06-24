@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/src/utils/supabase/admin";
 import { createClient } from "@/src/utils/supabase/server";
+import { isMfaSatisfied } from "@/src/lib/mfa";
 import { AdminHamburgerMenu } from "@/src/components/AdminHamburgerMenu";
 
 export const dynamic = "force-dynamic";
@@ -196,6 +197,11 @@ export default async function AdminDashboardPage() {
 
   if (userError || !user) {
     redirect("/login");
+  }
+
+  // Server-side 2FA gate: a user with 2FA enabled must finish OTP first.
+  if (!(await isMfaSatisfied(user))) {
+    redirect("/login/2fa");
   }
 
   const { data: profile, error: profileError } = await userClient

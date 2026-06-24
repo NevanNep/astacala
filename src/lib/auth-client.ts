@@ -2,6 +2,7 @@ import { createClient as createSupabaseClient, SupabaseClient } from "@supabase/
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/src/utils/supabase/server";
+import { enforceMfaApi } from "@/src/lib/mfa";
 
 type AuthenticatedUser = {
   id: string;
@@ -59,6 +60,11 @@ export async function authorizeUserClient(request: NextRequest): Promise<UserAut
 
   if (error || !user) {
     return { error: jsonError("Unauthorized", 401) };
+  }
+
+  const mfaError = await enforceMfaApi(user);
+  if (mfaError) {
+    return { error: mfaError };
   }
 
   return {
