@@ -106,6 +106,111 @@ export function NewsListCard({
   );
 }
 
+export function ActionToast({
+  message,
+  variant = "error",
+  onClose,
+}: {
+  message: string | null;
+  variant?: "error" | "success";
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    if (!message) return;
+
+    const timer = setTimeout(onClose, 4000);
+    return () => clearTimeout(timer);
+  }, [message, onClose]);
+
+  if (!message) return null;
+
+  const accent = variant === "error" ? "#D3262E" : "#2E7D32";
+
+  return (
+    <div
+      role="alert"
+      className="fixed bottom-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-[360px] -translate-x-1/2 rounded-[12px] border bg-white px-4 py-3 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200"
+      style={{ borderColor: accent }}
+    >
+      <div className="flex items-start gap-3">
+        <span
+          className="mt-[2px] inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+          style={{ backgroundColor: accent }}
+        />
+        <p className="flex-1 text-[13px] font-semibold leading-snug text-[#202124]">
+          {message}
+        </p>
+        <button
+          onClick={onClose}
+          aria-label="Tutup notifikasi"
+          className="shrink-0 text-[16px] leading-none text-[#777777] transition hover:text-[#202124]"
+        >
+          &times;
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function ConfirmModal({
+  isOpen,
+  title,
+  description,
+  confirmLabel = "Hapus",
+  loading = false,
+  onConfirm,
+  onClose,
+}: {
+  isOpen: boolean;
+  title: string;
+  description?: string;
+  confirmLabel?: string;
+  loading?: boolean;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div className="w-full max-w-[340px] rounded-[16px] bg-white p-8 text-center shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <h2 className="mb-3 text-[20px] font-extrabold text-[#202124]">{title}</h2>
+        {description ? (
+          <p className="mb-6 text-[13px] font-semibold text-[#777777]">{description}</p>
+        ) : (
+          <div className="mb-6" />
+        )}
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="h-11 flex-1 rounded-[12px] border border-[#7A7A7A] bg-white text-[15px] font-extrabold text-[#202124] transition hover:border-[#D3262E] hover:text-[#D3262E] disabled:opacity-60"
+          >
+            Batal
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="h-11 flex-1 rounded-[12px] bg-[#D3262E] text-[15px] font-extrabold text-white transition hover:bg-[#B71C1C] disabled:opacity-60"
+          >
+            {loading ? "Memproses..." : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function PublishSuccessModal({
   isOpen,
   onClose,

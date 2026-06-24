@@ -18,10 +18,6 @@ interface ApiErrorResponse {
   error?: string;
 }
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Unknown";
-}
-
 export default function LoginPage() {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -65,14 +61,11 @@ export default function LoginPage() {
         return;
       } else {
         const data = (await res.json()) as ApiErrorResponse;
-        const errorMsg = data.error ?? "Login gagal. Coba lagi.";
-        setError(errorMsg);
-        alert("Login Error: " + errorMsg);
+        setError(data.error ?? "Login gagal. Coba lagi.");
       }
     } catch (err: unknown) {
       console.error("Fetch error:", err);
-      setError("Terjadi kesalahan. Coba lagi.");
-      alert("Network or Server Error: " + getErrorMessage(err));
+      setError("Terjadi kesalahan jaringan. Coba lagi.");
     } finally {
       setLoading(false);
     }
@@ -125,9 +118,17 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  error={error}
                 />
               </div>
+
+              {error && (
+                <div
+                  role="alert"
+                  className="rounded-[var(--radius-md)] border border-[var(--color-primary)] bg-[#FDECEC] px-[12px] py-[10px] text-[var(--text-caption)] font-medium text-[var(--color-primary)]"
+                >
+                  {error}
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 cursor-pointer">

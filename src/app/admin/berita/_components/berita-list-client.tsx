@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdminNewsListItem } from "./types";
-import { NewsListCard, PublishSuccessModal } from "./admin-berita-ui";
+import {
+  ActionToast,
+  ConfirmModal,
+  NewsListCard,
+  PublishSuccessModal,
+} from "./admin-berita-ui";
 
 export function BeritaListClient({
   initialNews,
@@ -13,6 +18,8 @@ export function BeritaListClient({
   const router = useRouter();
   const [showSuccess, setShowSuccess] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const handlePublishClick = async (id: string) => {
     if (processingId) return;
@@ -28,22 +35,22 @@ export function BeritaListClient({
       if (!response.ok) {
         if (response.status === 401) router.push("/login");
         else if (response.status === 403) router.push("/dashboard");
-        else alert("Gagal mempublikasikan berita.");
+        else setErrorMessage("Gagal mempublikasikan berita.");
         return;
       }
 
       setShowSuccess(true);
       router.refresh();
     } catch {
-      alert("Terjadi kesalahan jaringan.");
+      setErrorMessage("Terjadi kesalahan jaringan. Coba lagi.");
     } finally {
       setProcessingId(null);
     }
   };
 
-  const handleDeleteClick = async (id: string) => {
-    if (processingId) return;
-    if (!window.confirm("Hapus berita ini?")) return;
+  const handleConfirmDelete = async () => {
+    const id = pendingDeleteId;
+    if (!id || processingId) return;
 
     setProcessingId(id);
 
@@ -55,15 +62,16 @@ export function BeritaListClient({
       if (!response.ok) {
         if (response.status === 401) router.push("/login");
         else if (response.status === 403) router.push("/dashboard");
-        else alert("Gagal menghapus berita.");
+        else setErrorMessage("Gagal menghapus berita.");
         return;
       }
 
       router.refresh();
     } catch {
-      alert("Terjadi kesalahan jaringan.");
+      setErrorMessage("Terjadi kesalahan jaringan. Coba lagi.");
     } finally {
       setProcessingId(null);
+      setPendingDeleteId(null);
     }
   };
 
@@ -75,7 +83,7 @@ export function BeritaListClient({
             key={news.id}
             news={news}
             onPublishClick={handlePublishClick}
-            onDeleteClick={handleDeleteClick}
+            onDeleteClick={(id) => setPendingDeleteId(id)}
           />
         ))}
       </div>
@@ -83,6 +91,25 @@ export function BeritaListClient({
       <PublishSuccessModal
         isOpen={showSuccess}
         onClose={() => setShowSuccess(false)}
+      />
+
+      <ConfirmModal
+        isOpen={pendingDeleteId !== null}
+        title="Hapus berita ini?"
+        description="Tindakan ini tidak dapat dibatalkan."
+        confirmLabel="Hapus"
+        loading={processingId !== null && processingId === pendingDeleteId}
+        onConfirm={handleConfirmDelete}
+        onClose={() => {
+          if (processingId) return;
+          setPendingDeleteId(null);
+        }}
+      />
+
+      <ActionToast
+        message={errorMessage}
+        variant="error"
+        onClose={() => setErrorMessage(null)}
       />
     </>
   );
