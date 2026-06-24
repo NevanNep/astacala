@@ -68,33 +68,6 @@ const ROLE_DEFAULT_RETURN: Record<BeritaViewerRole, string> = {
 };
 
 /**
- * Detect the viewer role from the current Supabase session so the (public)
- * berita pages can offer context-aware navigation. Falls back to "public" on
- * any error — published berita stays readable for everyone.
- */
-export async function resolveBeritaViewerRole(
-  supabase: SupabaseClient
-): Promise<BeritaViewerRole> {
-  try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) return "public";
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .maybeSingle<{ role: string | null }>();
-
-    return profile?.role === "admin" ? "admin" : "relawan";
-  } catch {
-    return "public";
-  }
-}
-
-/**
  * Validate a `returnTo` query param to prevent open-redirect attacks.
  * Only internal, absolute paths are allowed.
  */
@@ -123,12 +96,6 @@ export function resolveBeritaBackHref(
   returnTo: string | undefined | null
 ): string {
   return sanitizeReturnTo(returnTo) ?? defaultReturnHref(role);
-}
-
-/** Build the "Kembali ke Daftar Berita" href, preserving a safe returnTo. */
-export function buildBeritaListHref(returnTo: string | undefined | null): string {
-  const safe = sanitizeReturnTo(returnTo);
-  return safe ? `/berita?returnTo=${encodeURIComponent(safe)}` : "/berita";
 }
 
 export async function loadPublishedNews(

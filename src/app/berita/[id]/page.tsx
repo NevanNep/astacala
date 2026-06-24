@@ -7,9 +7,7 @@ import { Badge } from "@/src/components/Badge";
 import {
   requirePublicSupabase,
   loadPublishedNewsDetail,
-  resolveBeritaViewerRole,
-  resolveBeritaBackHref,
-  buildBeritaListHref
+  resolveBeritaBackHref
 } from "../_components/server-data";
 
 export const dynamic = "force-dynamic";
@@ -40,21 +38,17 @@ export default async function PublicBeritaDetailPage({
   const { id } = await params;
   const { returnTo } = await searchParams;
   const supabase = await requirePublicSupabase();
-  const [{ news, error }, role] = await Promise.all([
-    loadPublishedNewsDetail(supabase, id),
-    resolveBeritaViewerRole(supabase),
-  ]);
+  const { news, error } = await loadPublishedNewsDetail(supabase, id);
 
   if (error || !news) {
     notFound();
   }
 
-  // Navbar exit target (public -> "/", relawan -> "/dashboard", admin ->
-  // "/admin/dashboard", or a safe returnTo). The inline "Kembali ke Daftar
-  // Berita" link always returns to the list, preserving authenticated context.
-  const backHref = resolveBeritaBackHref(role, returnTo);
-  const listHref = role === "public" ? "/berita" : buildBeritaListHref(backHref);
-  const showMenu = role === "relawan";
+  // This is always a public page: no relawan menu, even for logged-in users.
+  // Relawan navigation lives in the dashboard area only. Back/exit goes to a
+  // safe returnTo when provided, otherwise the public home.
+  const backHref = resolveBeritaBackHref("public", returnTo);
+  const listHref = "/berita";
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--color-bg-default)]">
@@ -63,7 +57,7 @@ export default async function PublicBeritaDetailPage({
         title="Berita Bencana"
         showBack
         backHref={backHref}
-        showMenu={showMenu}
+        showMenu={false}
       />
 
       <main className="w-full pb-10 md:pb-16 flex-1">

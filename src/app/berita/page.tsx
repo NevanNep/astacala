@@ -5,7 +5,6 @@ import { SectionHeader } from "@/src/components/SectionHeader";
 import {
   requirePublicSupabase,
   loadPublishedNews,
-  resolveBeritaViewerRole,
   resolveBeritaBackHref
 } from "./_components/server-data";
 import { 
@@ -36,19 +35,11 @@ export default async function PublicBeritaListPage({
 }) {
   const supabase = await requirePublicSupabase();
   const params = await searchParams;
-  const [{ news, error }, role] = await Promise.all([
-    loadPublishedNews(supabase, params.q, params.kategori),
-    resolveBeritaViewerRole(supabase),
-  ]);
+  const { news, error } = await loadPublishedNews(supabase, params.q, params.kategori);
 
-  // Context-aware back/exit target: public -> "/", relawan -> "/dashboard",
-  // admin -> "/admin/dashboard" (or a safe returnTo when provided).
-  const backHref = resolveBeritaBackHref(role, params.returnTo);
-  // Only relawan get the volunteer sidebar; public/admin do not.
-  const showMenu = role === "relawan";
-  // Carry the authenticated context into detail links so detail navigation
-  // returns to the right place. Public links stay clean.
-  const detailReturnTo = role === "public" ? undefined : backHref;
+  // This is always a public page: no relawan menu, even for logged-in users.
+  // Back/exit goes to a safe returnTo when provided, otherwise the public home.
+  const backHref = resolveBeritaBackHref("public", params.returnTo);
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--color-bg-default)]">
@@ -57,7 +48,7 @@ export default async function PublicBeritaListPage({
         title="Berita Bencana"
         showBack
         backHref={backHref}
-        showMenu={showMenu}
+        showMenu={false}
         containerClassName="max-w-[1200px] lg:px-12"
       />
 
@@ -127,7 +118,6 @@ export default async function PublicBeritaListPage({
                   time={formatNewsDate(item.created_at)}
                   description={item.konten}
                   imageUrl={item.image_url}
-                  returnTo={detailReturnTo}
                 />
               ))}
             </div>
