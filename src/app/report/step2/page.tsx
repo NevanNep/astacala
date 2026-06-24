@@ -25,7 +25,16 @@ export default function Step2KondisiPage() {
   const [media, setMedia] = useState<ReportMediaItem[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCustomNeed, setShowCustomNeed] = useState(false);
+  const [customNeed, setCustomNeed] = useState("");
   const { jenis_bencana: jenisBencana, keparahan: severity, deskripsi, kebutuhan } = draft;
+
+  const needOptions = useMemo(() => {
+    const extras = kebutuhan.filter(
+      (item) => !(NEED_OPTIONS as readonly string[]).includes(item)
+    );
+    return [...NEED_OPTIONS, ...extras];
+  }, [kebutuhan]);
 
   const previews = useMemo(
     () =>
@@ -83,6 +92,20 @@ export default function Step2KondisiPage() {
         ? kebutuhan.filter((value) => value !== item)
         : [...kebutuhan, item],
     });
+  }
+
+  function addCustomNeed() {
+    const value = customNeed.trim();
+    if (!value) {
+      setShowCustomNeed(false);
+      setCustomNeed("");
+      return;
+    }
+    if (!kebutuhan.includes(value)) {
+      updateCondition({ kebutuhan: [...kebutuhan, value] });
+    }
+    setCustomNeed("");
+    setShowCustomNeed(false);
   }
 
   async function handleMediaChange(event: ChangeEvent<HTMLInputElement>) {
@@ -238,8 +261,8 @@ export default function Step2KondisiPage() {
                 Kebutuhan Mendesak
               </h2>
               <div className="min-h-[112px] rounded-[8px] border border-[#8E8E8E] bg-white p-3">
-                <div className="flex flex-wrap gap-2">
-                  {NEED_OPTIONS.map((item) => (
+                <div className="flex flex-wrap items-center gap-2">
+                  {needOptions.map((item) => (
                     <button
                       key={item}
                       type="button"
@@ -253,13 +276,37 @@ export default function Step2KondisiPage() {
                       {item}
                     </button>
                   ))}
-                  <button
-                    type="button"
-                    className="h-6 rounded-full bg-[#757575] px-5 text-[16px] font-semibold leading-none text-white"
-                    aria-label="Tambah kebutuhan lain"
-                  >
-                    +
-                  </button>
+                  {showCustomNeed ? (
+                    <input
+                      autoFocus
+                      type="text"
+                      value={customNeed}
+                      onChange={(event) => setCustomNeed(event.target.value)}
+                      onBlur={addCustomNeed}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          addCustomNeed();
+                        }
+                        if (event.key === "Escape") {
+                          setCustomNeed("");
+                          setShowCustomNeed(false);
+                        }
+                      }}
+                      placeholder="Tulis kebutuhan…"
+                      maxLength={30}
+                      className="h-6 w-[140px] rounded-full border border-[#8E8E8E] bg-white px-3 text-[12px] font-semibold text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)]"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowCustomNeed(true)}
+                      className="h-6 rounded-full bg-[#757575] px-5 text-[16px] font-semibold leading-none text-white"
+                      aria-label="Tambah kebutuhan lain"
+                    >
+                      +
+                    </button>
+                  )}
                 </div>
               </div>
             </section>
